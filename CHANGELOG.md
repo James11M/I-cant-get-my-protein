@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 - 2026-08-22
+
+- Added persistent activity logging to Supabase.
+- Added History backed by each signed-in user's activity logs.
+- Added Today navigation into Add Activity and History.
+
 ## 0.1.3 - 2026-08-22
 
 - Applied the initial Supabase production schema with profiles, organisations, memberships, activities, activity logs, auth profile creation, and Row Level Security.
