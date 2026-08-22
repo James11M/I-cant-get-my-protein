@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>I CAN'T HIT MY PROTEIN — Built with AI</title>
+  <style>
+    :root {
+      --bg: #07101E;
+      --card: #0D1B2C;
+      --card2: #14263B;
+      --border: #29405B;
+      --gold: #E8B632;
+      --white: #F7F7F3;
+      --muted: #9CAABD;
+      --green: #48C96B;
+      --purple: #9A72E8;
+      --header-h: 76px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--white); }
+    header { position: fixed; z-index: 20; top: 0; left: 0; right: 0; min-height: var(--header-h); display: flex; align-items: center; justify-content: space-between; padding: 14px 34px; background: rgba(7,16,30,.94); border-bottom: 1px solid var(--border); backdrop-filter: blur(14px); }
+    .brand { display: flex; flex-direction: column; gap: 2px; }
+    .logo { color: var(--gold); font-weight: 950; letter-spacing: 1.5px; font-size: 18px; }
+    .strap { color: var(--white); font-weight: 800; font-size: 8px; letter-spacing: 2.8px; }
+    nav { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 11px; font-weight: 850; letter-spacing: .5px; }
+    nav a:hover { color: var(--gold); }
+    section { min-height: 100vh; padding: calc(var(--header-h) + 42px) 7vw 48px; display: flex; align-items: center; scroll-snap-align: start; border-bottom: 1px solid rgba(41,64,91,.5); }
+    .slide { width: min(1220px, 100%); margin: 0 auto; }
+    .kicker { color: var(--gold); font-size: 12px; font-weight: 950; letter-spacing: 2px; text-transform: uppercase; }
+    h1, h2 { margin: 8px 0 16px; line-height: .98; }
+    h1 { font-size: clamp(54px, 8vw, 118px); max-width: 980px; letter-spacing: -3px; }
+    h2 { font-size: clamp(38px, 5.5vw, 76px); max-width: 980px; letter-spacing: -2px; }
+    h3 { margin: 0 0 8px; font-size: 20px; }
+    p { color: var(--muted); line-height: 1.65; font-size: 17px; max-width: 850px; }
+    .lead { color: var(--white); font-size: clamp(20px, 2.4vw, 30px); line-height: 1.35; max-width: 960px; }
+    .grid-2, .grid-3, .grid-4 { display: grid; gap: 18px; margin-top: 30px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .card { background: linear-gradient(180deg, rgba(20,38,59,.96), rgba(13,27,44,.96)); border: 1px solid var(--border); border-radius: 18px; padding: 22px; min-height: 160px; }
+    .card p { font-size: 14px; margin-bottom: 0; }
+    .number { color: var(--gold); font-size: 38px; font-weight: 950; }
+    .prompt { background: #0A1422; border-left: 4px solid var(--gold); border-radius: 12px; padding: 18px 20px; color: #DCE4EE; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+    .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 34px; }
+    .flow .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px 16px; text-align: center; font-weight: 900; }
+    .arrow { color: var(--gold); font-size: 26px; }
+    .before-after { display: grid; grid-template-columns: 1fr .78fr 1fr; gap: 22px; align-items: stretch; margin-top: 28px; }
+    .mock { border: 1px solid var(--border); background: var(--card); border-radius: 20px; padding: 18px; min-height: 430px; display: flex; flex-direction: column; }
+    .mock-screen { flex: 1; margin-top: 12px; border-radius: 18px; border: 1px dashed #4E6682; background: linear-gradient(180deg, #0A1626, #0D1B2C); display: flex; align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 28px; }
+    .prompt-center { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+    .tag { display: inline-block; margin: 5px 6px 0 0; border: 1px solid var(--border); background: var(--card2); color: var(--white); border-radius: 999px; padding: 7px 10px; font-size: 11px; font-weight: 850; }
+    .accent { color: var(--gold); }
+    .green { color: var(--green); }
+    .purple { color: var(--purple); }
+    .footer-note { margin-top: 28px; color: var(--muted); font-size: 12px; letter-spacing: .4px; }
+    @media (max-width: 900px) { header { align-items: flex-start; padding: 12px 18px; } nav { max-width: 56%; gap: 8px 10px; } nav a { font-size: 9px; } section { padding-left: 20px; padding-right: 20px; } .grid-4, .grid-3, .grid-2, .before-after { grid-template-columns: 1fr; } .flow { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); text-align: center; } h1 { letter-spacing: -2px; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">I CAN'T HIT MY PROTEIN</div><div class="strap">SPORTS · TRAINING · PROGRESS</div></div>
+  <nav><a href="#concept">01 Concept</a><a href="#prompts">02 Prompts</a><a href="#poc">03 POC</a><a href="#tools">04 Tools</a><a href="#architecture">05 Architecture</a><a href="#iteration">06 Iteration</a><a href="#features">07 Features</a><a href="#backend">08 Backend</a><a href="#release">09 Release</a><a href="#next">10 Next</a></nav>
+</header>
+<section id="concept"><div class="slide"><div class="kicker">01 · Concept</div><h1>Can a conversation become a real app?</h1><p class="lead">We started with an idea, no finished specification, and a goal: build a training app together while learning how AI can be used for real-world product design and coding.</p><div class="grid-3"><div class="card"><div class="number">1</div><h3>Idea</h3><p>Make fitness motivating through targets, games, progression and competition.</p></div><div class="card"><div class="number">2</div><h3>Conversation</h3><p>Use ordinary language to explain what the product should do and how it should feel.</p></div><div class="card"><div class="number">3</div><h3>Working software</h3><p>Turn those decisions into a prototype, backend and full mobile application.</p></div></div></div></section>
+<section id="prompts"><div class="slide"><div class="kicker">02 · Basic prompts to get started</div><h2>The first skill wasn't coding. It was describing the problem.</h2><div class="grid-2"><div class="prompt">“Build a simple training app for students that rewards consistency, not just maximum exercise.”</div><div class="prompt">“I want it to feel like an app, not a website. Dark navy, gold highlights, quick to understand.”</div><div class="prompt">“Show a weekly target, streak, XP and a way to catch up missed activity without making it too easy.”</div><div class="prompt">“Give me full copy-paste code so we can keep moving quickly and test it on a phone.”</div></div><p class="footer-note">For the final presentation these can be replaced with selected real prompts from the project history.</p></div></section>
+<section id="poc"><div class="slide"><div class="kicker">03 · POC and prompting to build</div><h2>Prototype first. Architecture later.</h2><p class="lead">Expo Snack let us test ideas quickly in one <strong>App.js</strong> file. That was exactly right at the start: speed mattered more than perfect structure.</p><div class="grid-3"><div class="card"><h3>Fast experiments</h3><p>Progress ring, levels, streaks, history modes, leaderboards, workouts and settings could be changed in minutes.</p></div><div class="card"><h3>Phone feedback</h3><p>We could see whether a design actually felt right on a real screen instead of discussing it abstractly.</p></div><div class="card"><h3>POC becomes specification</h3><p>The approved screenshots and App.js now act as the visual source of truth for the full application.</p></div></div><div class="mock" style="margin-top:24px; min-height:260px;"><strong class="accent">POC SCREENSHOT AREA</strong><div class="mock-screen">Insert the early Expo Snack / App.js screenshots here.</div></div></div></section>
+<section id="tools"><div class="slide"><div class="kicker">04 · Tools — selected and driven through AI</div><h2>A professional toolchain without starting as professional developers.</h2><div class="grid-4"><div class="card"><h3>ChatGPT</h3><p>Product thinking, code generation, debugging, architecture, documentation and iteration.</p></div><div class="card"><h3>Expo Snack</h3><p>Zero-setup proof of concept and rapid phone testing.</p></div><div class="card"><h3>GitHub</h3><p>Source control, commit history, README, CHANGELOG and recoverable versions.</p></div><div class="card"><h3>Codespaces</h3><p>A complete cloud development machine accessible from a browser.</p></div><div class="card"><h3>React Native</h3><p>One application codebase for iPhone, Android and web.</p></div><div class="card"><h3>Expo</h3><p>Mobile tooling, Expo Go previews and future production builds.</p></div><div class="card"><h3>Supabase</h3><p>Authentication, database, security and persistent user data.</p></div><div class="card"><h3>PostgreSQL</h3><p>Structured data for users, organisations, activities, history and future features.</p></div></div></div></section>
+<section id="architecture"><div class="slide"><div class="kicker">05 · From prototype to architecture</div><h2>When one App.js became too big, we changed the engineering — not the design.</h2><div class="flow"><div class="box">POC<br><span class="accent">App.js</span></div><div class="arrow">→</div><div class="box">React Native<br><span class="accent">TypeScript</span></div><div class="arrow">→</div><div class="box">Expo Router<br><span class="accent">Screens & routes</span></div><div class="arrow">→</div><div class="box">Supabase<br><span class="accent">Auth + PostgreSQL</span></div></div><div class="grid-2"><div class="card"><h3>Frontend</h3><p>Reusable components, routes, mobile UI, training screens and interaction logic.</p><span class="tag">React Native</span><span class="tag">TypeScript</span><span class="tag">Expo Router</span></div><div class="card"><h3>Backend</h3><p>Persistent accounts, organisations, roles, activity logs and secure access to data.</p><span class="tag">Supabase</span><span class="tag">PostgreSQL</span><span class="tag">RLS</span></div></div></div></section>
+<section id="iteration"><div class="slide"><div class="kicker">06 · Fast iteration using AI</div><h2>See it. Describe it. Change it. Test it again.</h2><div class="before-after"><div class="mock"><strong>BEFORE</strong><div class="mock-screen">Add an earlier screenshot here.</div></div><div class="prompt-center"><div class="prompt">“The site is taller than the screen and doesn't feel like an app. Match the original design and keep the bottom navigation fixed.”</div><div class="prompt">AI inspects the existing code + POC, amends the components, commits to GitHub, then we reload on the phone.</div></div><div class="mock"><strong class="green">AFTER</strong><div class="mock-screen">Add the improved screenshot here.</div></div></div></div></section>
+<section id="features"><div class="slide"><div class="kicker">07 · Features of the app</div><h2>Designing behaviour, not just screens.</h2><div class="grid-3"><div class="card"><h3>🔥 Streaks</h3><p>Encourage repeat behaviour and consistency rather than occasional bursts of effort.</p></div><div class="card"><h3>⭐ XP & levels</h3><p>Turn long-term activity into visible progress and give users something to work toward.</p></div><div class="card"><h3>↻ Comeback</h3><p>Give users a controlled way to recover from missed activity without making streaks meaningless.</p></div><div class="card"><h3>🏆 Leaderboards</h3><p>Compete with friends, teams, houses, schools, clubs or workplaces where appropriate.</p></div><div class="card"><h3>📈 Tracking</h3><p>History, measurements, strength progression and trends create a reason to keep logging.</p></div><div class="card"><h3>🏫 Optional organisations</h3><p>Schools are one use case, but the same architecture supports workplaces, clubs, gyms and universities.</p></div></div></div></section>
+<section id="backend"><div class="slide"><div class="kicker">08 · Backend development</div><h2>The app becomes real when data survives closing the phone.</h2><p class="lead">Supabase gives the project authentication, PostgreSQL storage and security rules. That turns the POC into a multi-user application.</p><div class="flow"><div class="box">User<br><span class="accent">signs in</span></div><div class="arrow">→</div><div class="box">React Native<br><span class="accent">app</span></div><div class="arrow">→</div><div class="box">Supabase<br><span class="accent">API + Auth</span></div><div class="arrow">→</div><div class="box">PostgreSQL<br><span class="accent">data</span></div></div><div class="grid-3"><div class="card"><h3>Profiles</h3><p>Each person has their own account and training data.</p></div><div class="card"><h3>Organisations</h3><p>Membership is optional and can represent schools, workplaces, clubs and other communities.</p></div><div class="card"><h3>Row Level Security</h3><p>Database rules control which records each signed-in user is allowed to read or change.</p></div></div></div></section>
+<section id="release"><div class="slide"><div class="kicker">09 · Release to the App Store</div><h2>Code isn't the finish line. Distribution is another engineering process.</h2><div class="grid-4"><div class="card"><div class="number">01</div><h3>Test</h3><p>Real devices, different screen sizes, real accounts and edge cases.</p></div><div class="card"><div class="number">02</div><h3>Build</h3><p>Use Expo Application Services to generate signed iOS and Android production builds.</p></div><div class="card"><div class="number">03</div><h3>Store assets</h3><p>Icons, screenshots, description, privacy details and age-rating information.</p></div><div class="card"><div class="number">04</div><h3>Submit</h3><p>Apple App Store review and Google Play release process.</p></div></div></div></section>
+<section id="next"><div class="slide"><div class="kicker">10 · Next steps — adoption</div><h2>Building an app is easier than getting people to keep using one.</h2><p class="lead">The next problem becomes product adoption: who tries it, what makes them return tomorrow, and which features create real value rather than just more complexity?</p><div class="grid-3"><div class="card"><h3>Small pilot</h3><p>Start with a controlled group of real users and observe what they actually do.</p></div><div class="card"><h3>Retention</h3><p>Measure whether targets, streaks, social competition and progression make people return.</p></div><div class="card"><h3>Feedback loop</h3><p>Use user feedback + app data + AI-assisted development to choose what to improve next.</p></div></div><p class="footer-note">Future version: replace placeholders with real POC screenshots, app screens, prompts, GitHub history, Supabase diagrams and App Store milestones.</p></div></section>
+</body>
+</html>
