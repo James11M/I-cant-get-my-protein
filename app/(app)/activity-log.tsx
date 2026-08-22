@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
@@ -51,7 +52,7 @@ export default function ActivityLogScreen() {
   return (
     <Screen>
       <Brand />
-      <Pressable style={styles.back} onPress={() => router.back()}><Text style={styles.backText}>‹  BACK</Text></Pressable>
+      <BackButton />
       <Text style={styles.hero}>{activity?.icon || '⚡'}</Text>
       <Text style={styles.title}>{activity?.name || 'Activity'}</Text>
 
@@ -78,8 +79,6 @@ function Field({ label, value, onChangeText }: { label: string; value: string; o
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginTop: 20, marginBottom: 8 },
-  backText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   hero: { fontSize: 42, marginTop: 4 },
   title: { color: colours.white, fontSize: 30, fontWeight: '900', marginTop: 2, marginBottom: 14 },
   card: { paddingTop: 8 },
