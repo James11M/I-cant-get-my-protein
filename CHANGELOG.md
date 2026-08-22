@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.10 - 2026-08-22
+
+- Restored the locked bottom navigation icon set with Home, clock, podium, filled gear, and the central gold Add button.
+- Restored the product name to I Can't Get My Protein.
+- Restored the locked segmented progress ring behaviour across 0–300% while preserving the locked ring track colour.
+- Pinned Expo Go-compatible vector icon and font dependencies for SDK 54.
+
 ## 0.1.9 - 2026-08-22
 
 - Pinned Expo SDK 54 router dependencies for Expo Go compatibility, including `react-native-screens` 4.16.
