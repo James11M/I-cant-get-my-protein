@@ -12,5 +12,9 @@ export const colours = {
   green2: '#39B865',
   green3: '#188B46',
   green: '#48C96B',
+  yellow: '#F1C54C',
+  orange: '#F3A928',
   red: '#E85A5A',
+  blue: '#4092D0',
+  purple: '#9A72E8',
 };
