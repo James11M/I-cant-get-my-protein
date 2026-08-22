@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 - 2026-08-22
+
+- Fixed the Codespaces phone web preview command to use Expo's supported LAN host mode.
+
 ## 0.1.1 - 2026-08-22
 
 - Added a fast Codespaces-to-iPhone web preview command.
