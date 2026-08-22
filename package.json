@@ -5,6 +5,8 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "phone:web": "expo start --web --host 0.0.0.0",
+    "phone:native": "expo start --dev-client --tunnel",
     "web": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -13,6 +15,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "expo": "~57.0.0",
+    "expo-dev-client": "~57.0.10",
     "expo-router": "~57.0.10",
     "expo-sqlite": "~57.0.1",
     "react": "19.2.3",
