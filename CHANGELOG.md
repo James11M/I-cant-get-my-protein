@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.14 - 2026-08-22
+
+- Restored the Today target card to the Snack POC structure: compact target ring, separate progress bar, and a full-width XP / consistency multiplier panel.
+- Reduced the progress ring from 160px to 120px so it remains below half the target card width on iPhone layouts.
+- Restored the original Weekly Comeback calculation, including 50% recovery from credit earned above the daily target.
+- Seeded the Supabase activity library with the 15 POC system activities and their measurement types, targets, default durations and icons.
+- Added per-user activity favourites with Row Level Security.
+- Replaced the temporary free-text activity logger with the database-driven POC activity library, filters and favourite controls.
+- Added target-aware activity logging so time, distance and holes calculate raw credit using the POC rules, while recovery activities remain non-credit activity.
+- Preserved raw credit above 30 minutes in activity logs so Weekly Comeback can work correctly.
+
 ## 0.1.13 - 2026-08-22
 
 - Rebuilt Today to follow the uploaded POC hierarchy: level, target ring, XP reward, fire score, capacity, activity and weekly comeback.
