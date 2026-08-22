@@ -1,43 +1,57 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 
 import { Brand } from '@/components/Brand';
-import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
-import { addActivityLog } from '@/features/activities/activity.service';
+import { Activity, getActivities, getFavouriteActivityIds, setActivityFavourite } from '@/features/activities/activity.service';
 import { useAuth } from '@/providers/AuthProvider';
 import { colours } from '@/theme/colours';
 
-export default function ActivityEntryScreen() {
-  const { session } = useAuth();
-  const [name, setName] = useState('');
-  const [duration, setDuration] = useState('');
-  const [amount, setAmount] = useState('');
-  const [unit, setUnit] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+const FILTERS = ['FAVOURITES', 'ALL', 'Sport', 'Cardio', 'Recovery', 'School / PE'];
 
-  async function save() {
-    const minutes = Number(duration);
-    const measuredAmount = amount.trim() ? Number(amount) : null;
-    if (!session?.user.id || !name.trim() || !Number.isFinite(minutes) || minutes <= 0) {
-      setError('Enter an activity name and a valid duration.');
-      return;
+export default function ActivityLibraryScreen() {
+  const { session } = useAuth();
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [favourites, setFavourites] = useState<string[]>([]);
+  const [filter, setFilter] = useState('ALL');
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(useCallback(() => {
+    let live = true;
+    async function load() {
+      try {
+        setLoading(true);
+        const [items, favouriteIds] = await Promise.all([
+          getActivities(),
+          session?.user.id ? getFavouriteActivityIds(session.user.id) : Promise.resolve([]),
+        ]);
+        if (live) {
+          setActivities(items);
+          setFavourites(favouriteIds);
+        }
+      } finally {
+        if (live) setLoading(false);
+      }
     }
-    if (measuredAmount !== null && !Number.isFinite(measuredAmount)) {
-      setError('Amount must be a number.');
-      return;
-    }
+    void load();
+    return () => { live = false; };
+  }, [session?.user.id]));
+
+  const visible = useMemo(() => activities.filter((activity) => {
+    if (filter === 'ALL') return true;
+    if (filter === 'FAVOURITES') return favourites.includes(activity.id);
+    return activity.category === filter;
+  }), [activities, favourites, filter]);
+
+  async function toggleFavourite(activityId: string) {
+    if (!session?.user.id) return;
+    const next = !favourites.includes(activityId);
+    setFavourites((current) => next ? [...current, activityId] : current.filter((id) => id !== activityId));
     try {
-      setSaving(true);
-      setError('');
-      await addActivityLog({ userId: session.user.id, name, durationMinutes: minutes, amount: measuredAmount, unit });
-      router.replace('/(app)');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save activity.');
-    } finally {
-      setSaving(false);
+      await setActivityFavourite(session.user.id, activityId, next);
+    } catch {
+      setFavourites((current) => next ? current.filter((id) => id !== activityId) : [...current, activityId]);
     }
   }
 
@@ -46,32 +60,57 @@ export default function ActivityEntryScreen() {
       <Brand />
       <Pressable style={styles.back} onPress={() => router.back()}><Text style={styles.backText}>‹  CHANGE TRAINING TYPE</Text></Pressable>
       <Text style={styles.title}>Sport / Activity</Text>
-      <Text style={styles.subtitle}>Log sport, cardio, recovery or another activity.</Text>
-      <Card style={styles.card}>
-        <Field label="ACTIVITY" value={name} onChangeText={setName} placeholder="e.g. Football" />
-        <Field label="DURATION • MIN" value={duration} onChangeText={setDuration} placeholder="30" numeric />
-        <Field label="AMOUNT • OPTIONAL" value={amount} onChangeText={setAmount} placeholder="e.g. 5" numeric />
-        <Field label="UNIT • OPTIONAL" value={unit} onChangeText={setUnit} placeholder="e.g. km" />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable style={styles.save} onPress={save} disabled={saving}><Text style={styles.saveText}>{saving ? 'SAVING...' : 'SAVE'}</Text></Pressable>
-      </Card>
+      <Text style={styles.subtitle}>Choose what you did.</Text>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+        {FILTERS.map((item) => (
+          <Pressable key={item} style={[styles.filter, filter === item && styles.filterOn]} onPress={() => setFilter(item)}>
+            <Text style={[styles.filterText, filter === item && styles.filterTextOn]}>{item}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {loading ? <Text style={styles.message}>Loading activities…</Text> : null}
+      {!loading && visible.length === 0 ? <Text style={styles.message}>No activities in this filter yet.</Text> : null}
+
+      {visible.map((activity) => (
+        <View key={activity.id} style={styles.listCard}>
+          <Pressable style={styles.listMain} onPress={() => router.push({ pathname: '/(app)/activity-log', params: { id: activity.id } })}>
+            <Text style={styles.listEmoji}>{activity.icon || '⚡'}</Text>
+            <View style={styles.flex}>
+              <Text style={styles.cardTitle}>{activity.name}</Text>
+              <Text style={styles.smallMuted}>{activity.category} • full credit {activity.default_target} {activity.unit}</Text>
+            </View>
+            <Text style={styles.arrow}>→</Text>
+          </Pressable>
+          <Pressable style={styles.favouriteStrip} onPress={() => void toggleFavourite(activity.id)}>
+            <Text style={favourites.includes(activity.id) ? styles.starOn : styles.starOff}>{favourites.includes(activity.id) ? '★' : '☆'}</Text>
+          </Pressable>
+        </View>
+      ))}
     </Screen>
   );
-}
-
-function Field({ label, value, onChangeText, placeholder, numeric = false }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; numeric?: boolean }) {
-  return <><Text style={styles.label}>{label}</Text><TextInput style={styles.input} value={value} onChangeText={onChangeText} keyboardType={numeric ? 'numeric' : 'default'} placeholder={placeholder} placeholderTextColor={colours.muted} /></>;
 }
 
 const styles = StyleSheet.create({
   back: { alignSelf: 'flex-start', marginTop: 20, marginBottom: 10 },
   backText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
   title: { color: colours.white, fontSize: 30, fontWeight: '900' },
-  subtitle: { color: colours.muted, fontSize: 11, lineHeight: 16, marginTop: 5, marginBottom: 16 },
-  card: { paddingTop: 8 },
-  label: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.1, marginTop: 10, marginBottom: 6 },
-  input: { backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.border, borderRadius: 10, color: colours.white, paddingHorizontal: 13, paddingVertical: 11, fontSize: 14 },
-  error: { color: colours.red, marginTop: 12, fontSize: 11 },
-  save: { backgroundColor: colours.gold, borderRadius: 12, minHeight: 46, alignItems: 'center', justifyContent: 'center', marginTop: 17 },
-  saveText: { color: colours.background, fontSize: 11, fontWeight: '900', letterSpacing: 1.2 },
+  subtitle: { color: colours.muted, fontSize: 11, marginTop: 4, marginBottom: 12 },
+  filters: { gap: 7, paddingBottom: 12 },
+  filter: { borderWidth: 1, borderColor: colours.border, backgroundColor: colours.card2, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
+  filterOn: { borderColor: colours.gold },
+  filterText: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.6 },
+  filterTextOn: { color: colours.gold },
+  message: { color: colours.muted, fontSize: 11, paddingVertical: 16 },
+  listCard: { flexDirection: 'row', backgroundColor: colours.card, borderWidth: 1, borderColor: colours.border, borderRadius: 14, marginBottom: 8, overflow: 'hidden' },
+  listMain: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 67, paddingHorizontal: 12, paddingVertical: 10 },
+  listEmoji: { fontSize: 25, width: 42 },
+  flex: { flex: 1 },
+  cardTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
+  smallMuted: { color: colours.muted, fontSize: 8, fontWeight: '700', marginTop: 3 },
+  arrow: { color: colours.gold, fontSize: 19, fontWeight: '900', marginLeft: 8 },
+  favouriteStrip: { width: 42, borderLeftWidth: 1, borderLeftColor: colours.border, alignItems: 'center', justifyContent: 'center', backgroundColor: colours.card2 },
+  starOn: { color: colours.gold, fontSize: 21 },
+  starOff: { color: colours.muted, fontSize: 21 },
 });
