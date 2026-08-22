@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.12 - 2026-08-22
+
+- Re-established the uploaded POC `App.js` and screenshots as the visual source of truth for the full application.
+- Restored the approved product name to I Can't Hit My Protein.
+- Restored the locked POC bottom navigation treatment, including gold active states and the custom Home, clock, podium, gear, and central Add icons.
+- Preserved the broader product scope: individual use is primary and school, workplace, club, gym, university, and other organisation membership remains optional.
+
 ## 0.1.11 - 2026-08-22
 
 - Restored the Today screen to a fixed-height app layout so the main experience fits the iPhone viewport without page-style scrolling.
