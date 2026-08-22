@@ -12,7 +12,7 @@ A cross-platform training and fitness app for individual users, with optional so
 
 ## Architecture
 
-- Expo SDK 57 + React Native + Expo Router
+- Expo SDK 54 + React Native + Expo Router
 - TypeScript
 - Supabase Auth + PostgreSQL + Row Level Security
 - Feature-based source structure
@@ -36,17 +36,13 @@ Organisation membership is optional. A user can use the app fully without joinin
 
 ## iPhone preview
 
-### Fastest preview
+### Expo Go
 
-Run `npm run phone:web` in Codespaces. Make the forwarded web port public, then open the forwarded URL in Safari on the iPhone. This gives a quick phone-sized preview without an Apple Developer account.
+Install Expo Go on the iPhone. In Codespaces run `npm run phone:go`, allow Expo to install `@expo/ngrok` if prompted, then scan the QR code with the iPhone camera or Expo Go.
 
-### Native development build
+### Web fallback
 
-The production project uses Expo SDK 57, so native device testing uses an Expo development build rather than Expo Go during the SDK 57 transition.
-
-The repository includes `expo-dev-client` and an EAS development profile. Creating an iOS development build with EAS requires Apple signing credentials.
-
-Once the development build is installed, run `npm run phone:native` to connect it to the Codespaces development server.
+Run `npm run phone:web` in Codespaces. Make the forwarded web port public, then open the forwarded URL in Safari on the iPhone.
 
 ## Security
 
