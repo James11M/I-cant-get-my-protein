@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.13 - 2026-08-22
+
+- Rebuilt Today to follow the uploaded POC hierarchy: level, target ring, XP reward, fire score, capacity, activity and weekly comeback.
+- Rebuilt History with POC Week, Month and Year views while preserving real Supabase activity-log data.
+- Rebuilt Add Training with Sport / Activity and Strength Training choices, plus POC-style activity entry, Strength Quick Start and initial Workout screens.
+- Added Leaders with Leaderboard, Awards and Stats tabs in the approved POC visual system.
+- Added Secret Nerd Stuff and POC-style Exercise Library, Sports & Activities, Exercise Timing, Strength Tracking, Targets, Stats & Measurements and School Term Dates screens.
+- Updated the visible strapline from SCHOOL - SPORTS - AWARDS to SCHOOL - SPORTS - PROGRESS.
+- Restored the complete POC navy/gold palette including the locked card3/ring-track colour.
+- Wired all five locked bottom-navigation destinations to live Expo Router routes.
+
 ## 0.1.12 - 2026-08-22
 
 - Re-established the uploaded POC `App.js` and screenshots as the visual source of truth for the full application.
