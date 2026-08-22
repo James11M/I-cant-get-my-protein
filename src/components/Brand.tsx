@@ -6,7 +6,7 @@ export function Brand() {
   return (
     <View>
       <Text style={styles.title}>I CAN&apos;T HIT MY PROTEIN</Text>
-      <Text style={styles.subtitle}>SCHOOL - SPORTS - PROGRESS</Text>
+      <Text style={styles.subtitle}>SCHOOL - SPORTS - AWARDS</Text>
     </View>
   );
 }
