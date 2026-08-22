@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.11 - 2026-08-22
+
+- Restored the Today screen to a fixed-height app layout so the main experience fits the iPhone viewport without page-style scrolling.
+- Kept the locked bottom navigation anchored at the bottom of the screen.
+- Compacted the Today progress ring, stat cards, and activity action while preserving the locked colours and ring behaviour.
+
 ## 0.1.10 - 2026-08-22
 
 - Restored the locked bottom navigation icon set with Home, clock, podium, filled gear, and the central gold Add button.
