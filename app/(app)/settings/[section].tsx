@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
+import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
@@ -24,7 +25,7 @@ export default function SettingsSectionScreen() {
   return (
     <Screen>
       <Brand />
-      <Pressable style={styles.back} onPress={() => router.back()}><Text style={styles.backText}>‹  BACK</Text></Pressable>
+      <BackButton />
       <Text style={styles.title}>{content.title}</Text>
       {content.subtitle ? <Text style={styles.subtitle}>{content.subtitle}</Text> : null}
       {key === 'exercise-library' ? <ExerciseLibrary /> : null}
@@ -127,7 +128,6 @@ function TermCard({ name, start, end }: { name: string; start: string; end: stri
 function RoundButton({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable style={styles.roundButton} onPress={onPress}><Text style={styles.roundButtonText}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginTop: 21, marginBottom: 12 }, backText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   title: { color: colours.white, fontSize: 30, lineHeight: 34, fontWeight: '900' }, subtitle: { color: colours.muted, fontSize: 11, lineHeight: 16, marginTop: 5, marginBottom: 17 },
   flex: { flex: 1 }, rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   infoCard: { marginBottom: 10 }, label: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.1 }, valueSmall: { color: colours.white, fontSize: 9, fontWeight: '800', marginTop: 4 },
