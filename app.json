@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "I Can't Get My Protein",
+    "slug": "i-cant-get-my-protein",
+    "scheme": "icantgetmyprotein",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.icantgetmyprotein.app"
+    },
+    "android": {
+      "package": "com.icantgetmyprotein.app"
+    }
+  }
+}
