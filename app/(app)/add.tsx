@@ -1,96 +1,48 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
-import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
-import { addActivityLog } from '@/features/activities/activity.service';
-import { useAuth } from '@/providers/AuthProvider';
 import { colours } from '@/theme/colours';
 
-export default function AddActivityScreen() {
-  const { session } = useAuth();
-  const [name, setName] = useState('');
-  const [duration, setDuration] = useState('');
-  const [amount, setAmount] = useState('');
-  const [unit, setUnit] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  async function save() {
-    const minutes = Number(duration);
-    const measuredAmount = amount.trim() ? Number(amount) : null;
-
-    if (!session?.user.id || !name.trim() || !Number.isFinite(minutes) || minutes <= 0) {
-      setError('Enter an activity name and a valid duration.');
-      return;
-    }
-
-    if (measuredAmount !== null && !Number.isFinite(measuredAmount)) {
-      setError('Amount must be a number.');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError('');
-      await addActivityLog({
-        userId: session.user.id,
-        name,
-        durationMinutes: minutes,
-        amount: measuredAmount,
-        unit,
-      });
-      router.replace('/(app)/history');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save activity.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
+export default function AddTrainingScreen() {
   return (
-    <Screen>
+    <Screen scroll={false} contentStyle={styles.screen}>
       <Brand />
-      <Text style={styles.title}>Add Activity</Text>
-      <Text style={styles.subtitle}>Log a completed training session.</Text>
+      <Text style={styles.title}>Add Training</Text>
 
-      <Card>
-        <Text style={styles.label}>ACTIVITY</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. Football" placeholderTextColor={colours.muted} />
+      <Choice emoji="🏉" title="SPORT / ACTIVITY" text="PE, sport, cardio and recovery." onPress={() => router.push('/(app)/activity')} />
+      <Choice emoji="🏋️" title="STRENGTH TRAINING" text="Quick Start or use a saved workout template." onPress={() => router.push('/(app)/strength')} />
 
-        <Text style={styles.label}>DURATION (MINUTES)</Text>
-        <TextInput style={styles.input} value={duration} onChangeText={setDuration} keyboardType="numeric" placeholder="30" placeholderTextColor={colours.muted} />
-
-        <Text style={styles.label}>AMOUNT (OPTIONAL)</Text>
-        <TextInput style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder="e.g. 5" placeholderTextColor={colours.muted} />
-
-        <Text style={styles.label}>UNIT (OPTIONAL)</Text>
-        <TextInput style={styles.input} value={unit} onChangeText={setUnit} placeholder="e.g. km" placeholderTextColor={colours.muted} />
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <Pressable style={styles.primary} onPress={save} disabled={saving}>
-          <Text style={styles.primaryText}>{saving ? 'SAVING...' : 'SAVE ACTIVITY'}</Text>
-        </Pressable>
-      </Card>
-
-      <Pressable style={styles.back} onPress={() => router.back()}>
-        <Text style={styles.backText}>CANCEL</Text>
-      </Pressable>
+      <View style={styles.spacer} />
+      <BottomNav />
     </Screen>
   );
 }
 
+function Choice({ emoji, title, text, onPress }: { emoji: string; title: string; text: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.choice} onPress={onPress}>
+      <View style={styles.iconCircle}><Text style={styles.emoji}>{emoji}</Text></View>
+      <View style={styles.choiceCopy}>
+        <Text style={styles.choiceTitle}>{title}</Text>
+        <Text style={styles.choiceText}>{text}</Text>
+      </View>
+      <Text style={styles.arrow}>›</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  title: { color: colours.white, fontSize: 30, fontWeight: '900', marginTop: 28 },
-  subtitle: { color: colours.muted, marginTop: 4, marginBottom: 18 },
-  label: { color: colours.gold, fontSize: 9, fontWeight: '900', marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colours.card2, color: colours.white, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  error: { color: '#FF9C9C', marginTop: 14, fontSize: 12 },
-  primary: { backgroundColor: colours.gold, borderRadius: 12, alignItems: 'center', padding: 15, marginTop: 18 },
-  primaryText: { color: colours.background, fontSize: 11, fontWeight: '900' },
-  back: { alignItems: 'center', padding: 18 },
-  backText: { color: colours.muted, fontSize: 9, fontWeight: '900' },
+  screen: { paddingBottom: 6 },
+  title: { color: colours.white, fontSize: 31, lineHeight: 35, fontWeight: '900', marginTop: 25, marginBottom: 17 },
+  choice: { minHeight: 91, borderWidth: 1, borderColor: colours.gold, borderRadius: 16, backgroundColor: colours.card, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 14, marginBottom: 13 },
+  iconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colours.card2, alignItems: 'center', justifyContent: 'center', marginRight: 13 },
+  emoji: { fontSize: 25 },
+  choiceCopy: { flex: 1 },
+  choiceTitle: { color: colours.white, fontSize: 14, fontWeight: '900', letterSpacing: 0.3 },
+  choiceText: { color: colours.muted, fontSize: 10, fontWeight: '600', marginTop: 5, lineHeight: 14 },
+  arrow: { color: colours.gold, fontSize: 31, lineHeight: 32, fontWeight: '300', marginLeft: 8 },
+  spacer: { flex: 1 },
 });
