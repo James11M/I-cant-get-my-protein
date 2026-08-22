@@ -1,4 +1,4 @@
-# I Can't Get My Protein
+# I Can't Hit My Protein
 
 A cross-platform training and fitness app for individual users, with optional social and organisational features for schools, workplaces, clubs, gyms, universities, and other communities.
 
@@ -12,7 +12,7 @@ A cross-platform training and fitness app for individual users, with optional so
 
 ## Architecture
 
-- Expo + React Native + Expo Router
+- Expo SDK 57 + React Native + Expo Router
 - TypeScript
 - Supabase Auth + PostgreSQL + Row Level Security
 - Feature-based source structure
@@ -26,16 +26,17 @@ A cross-platform training and fitness app for individual users, with optional so
 
 Organisation membership is optional. A user can use the app fully without joining a school, workplace, club, or other organisation.
 
-## Local / Codespaces setup
+## Codespaces setup
 
-1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env`.
-3. Add the Supabase project URL and publishable key.
-4. Run `npm run start`.
+1. Open the repository in GitHub Codespaces.
+2. Run `npm install`.
+3. Copy `.env.example` to `.env`.
+4. Add the Supabase project URL and publishable key.
+5. Run `npm run start`.
 
 ## iPhone preview
 
-For the current Expo SDK 57 codebase, the reliable physical-iPhone path is an Expo development build / EAS Build. During the SDK 57 transition, Expo Go on physical devices may still require an SDK 54 project, so this production project will target SDK 57 and use EAS when we begin phone testing.
+Install Expo Go on the iPhone. In the Codespace run `npx expo start --tunnel`, then scan the Expo QR code with the iPhone camera / Expo Go. Expo SDK 57 supports Expo Router and Expo Go. We can move to an EAS development build later when native capabilities require it.
 
 ## Security
 
