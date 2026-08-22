@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 
+import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Screen } from '@/components/Screen';
 import { Activity, getActivities, getFavouriteActivityIds, setActivityFavourite } from '@/features/activities/activity.service';
@@ -58,7 +59,7 @@ export default function ActivityLibraryScreen() {
   return (
     <Screen>
       <Brand />
-      <Pressable style={styles.back} onPress={() => router.back()}><Text style={styles.backText}>‹  CHANGE TRAINING TYPE</Text></Pressable>
+      <BackButton label="BACK" />
       <Text style={styles.title}>Sport / Activity</Text>
       <Text style={styles.subtitle}>Choose what you did.</Text>
 
@@ -93,8 +94,6 @@ export default function ActivityLibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginTop: 20, marginBottom: 10 },
-  backText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
   title: { color: colours.white, fontSize: 30, fontWeight: '900' },
   subtitle: { color: colours.muted, fontSize: 11, marginTop: 4, marginBottom: 12 },
   filters: { gap: 7, paddingBottom: 12 },
