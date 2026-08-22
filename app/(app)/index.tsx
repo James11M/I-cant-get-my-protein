@@ -12,7 +12,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { colours } from '@/theme/colours';
 
 export default function HomeScreen() {
-  const { session, signOut } = useAuth();
+  const { signOut } = useAuth();
   const [todayMinutes, setTodayMinutes] = useState(0);
   const [todayActivities, setTodayActivities] = useState(0);
 
@@ -49,7 +49,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen scroll={false} contentStyle={styles.screen}>
       <View style={styles.header}>
         <Brand />
         <Pressable onPress={signOut} hitSlop={12}>
@@ -97,41 +97,33 @@ export default function HomeScreen() {
         <Text style={styles.actionArrow}>＋</Text>
       </Pressable>
 
-      <Pressable style={styles.historyLink} onPress={() => router.push('/(app)/history')}>
-        <Text style={styles.historyText}>VIEW ACTIVITY HISTORY</Text>
-        <Text style={styles.historyArrow}>›</Text>
-      </Pressable>
-
-      <Text style={styles.signedIn}>SIGNED IN AS {session?.user.email?.toUpperCase()}</Text>
+      <View style={styles.navSpacer} />
       <BottomNav active="today" />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { paddingBottom: 14 },
+  screen: { paddingBottom: 6 },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   logout: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 1 },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 28, marginBottom: 14 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14, marginBottom: 8 },
   eyebrow: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.8 },
-  title: { color: colours.white, fontSize: 34, fontWeight: '900', letterSpacing: 0.5, marginTop: 1 },
-  streakPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.border, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 11, marginBottom: 5 },
-  streakIcon: { fontSize: 13, marginRight: 5 },
-  streakText: { color: colours.white, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
-  heroCard: { alignItems: 'center', paddingTop: 16, paddingBottom: 18 },
-  heroLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.8 },
-  heroCopy: { color: colours.muted, fontSize: 11, fontWeight: '700', marginTop: 2 },
-  statsRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  statCard: { flex: 1, minHeight: 92 },
-  statLabel: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 },
-  statValue: { color: colours.white, fontSize: 28, fontWeight: '900', marginTop: 5 },
-  statFoot: { color: colours.gold, fontSize: 7, fontWeight: '900', letterSpacing: 1.2, marginTop: 1 },
-  primaryAction: { backgroundColor: colours.gold, borderRadius: 14, marginTop: 12, paddingHorizontal: 18, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { color: colours.white, fontSize: 31, fontWeight: '900', letterSpacing: 0.5 },
+  streakPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.border, borderRadius: 20, paddingVertical: 7, paddingHorizontal: 10, marginBottom: 3 },
+  streakIcon: { fontSize: 12, marginRight: 4 },
+  streakText: { color: colours.white, fontSize: 7, fontWeight: '900', letterSpacing: 0.8 },
+  heroCard: { alignItems: 'center', paddingTop: 10, paddingBottom: 10 },
+  heroLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.8 },
+  heroCopy: { color: colours.muted, fontSize: 10, fontWeight: '700', marginTop: 2 },
+  statsRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  statCard: { flex: 1, minHeight: 74, paddingVertical: 11 },
+  statLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1.2 },
+  statValue: { color: colours.white, fontSize: 24, fontWeight: '900', marginTop: 2 },
+  statFoot: { color: colours.gold, fontSize: 7, fontWeight: '900', letterSpacing: 1.2 },
+  primaryAction: { backgroundColor: colours.gold, borderRadius: 14, marginTop: 8, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   actionEyebrow: { color: '#5C4510', fontSize: 7, fontWeight: '900', letterSpacing: 1.5 },
-  actionTitle: { color: colours.background, fontSize: 17, fontWeight: '900', marginTop: 2 },
-  actionArrow: { color: colours.background, fontSize: 31, fontWeight: '500' },
-  historyLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 4 },
-  historyText: { color: colours.white, fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
-  historyArrow: { color: colours.gold, fontSize: 24, lineHeight: 24 },
-  signedIn: { color: colours.muted, fontSize: 7, fontWeight: '800', letterSpacing: 0.8, textAlign: 'center', marginTop: 3 },
+  actionTitle: { color: colours.background, fontSize: 16, fontWeight: '900', marginTop: 1 },
+  actionArrow: { color: colours.background, fontSize: 27, fontWeight: '500' },
+  navSpacer: { flex: 1, minHeight: 4 },
 });
