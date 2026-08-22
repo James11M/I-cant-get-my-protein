@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Screen } from '@/components/Screen';
 import { colours } from '@/theme/colours';
@@ -9,7 +10,7 @@ export default function StrengthTrainingScreen() {
   return (
     <Screen>
       <Brand />
-      <Pressable style={styles.back} onPress={() => router.back()}><Text style={styles.backText}>‹  BACK</Text></Pressable>
+      <BackButton />
       <Text style={styles.title}>Strength Training</Text>
 
       <Pressable style={styles.quickStart} onPress={() => router.push('/(app)/workout')}>
@@ -25,8 +26,6 @@ export default function StrengthTrainingScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginTop: 22, marginBottom: 12 },
-  backText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   title: { color: colours.white, fontSize: 30, lineHeight: 34, fontWeight: '900', marginBottom: 19 },
   quickStart: { borderWidth: 1, borderColor: colours.gold, borderRadius: 16, backgroundColor: colours.card, minHeight: 86, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15 },
   plusCircle: { width: 45, height: 45, borderRadius: 23, backgroundColor: colours.gold, alignItems: 'center', justifyContent: 'center', marginRight: 13 },
