@@ -5,7 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "phone:web": "expo start --web --host 0.0.0.0",
+    "phone:web": "expo start --web --host lan",
     "phone:native": "expo start --dev-client --tunnel",
     "web": "expo start --web",
     "android": "expo start --android",
