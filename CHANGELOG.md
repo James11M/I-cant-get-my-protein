@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8 - 2026-08-22
+
+- Removed the stale `expo-dev-client` app plugin so Expo Go can start after the SDK 54 downgrade.
+
 ## 0.1.7 - 2026-08-22
 
 - Downgraded the Expo runtime to SDK 54 for Expo Go compatibility on physical iPhones.
