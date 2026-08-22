@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.20 - 2026-08-22
+
+- Added a shared POC exercise and activity catalogue, including the full 42-exercise bodyweight library plus the original dumbbell, kettlebell and gym starters.
+- Restored the Strength Quick Start workout builder with exercise search and equipment filters, editable sets, reps/time and weights, add-set and remove-exercise controls, estimated duration, completion summary and template naming.
+- Connected completed strength workouts back into the existing Supabase-backed activity history.
+- Expanded Exercise Library from placeholder rows to a searchable/filterable catalogue with favourites and custom-exercise creation.
+- Restored the full POC Sports & Activities catalogue and custom activity creation.
+- Restored editable exercise timing, per-exercise rep pace, strength tracking, targets, core/advanced measurements and editable school term dates.
+- Kept the approved POC visual language and existing rolling 7-day fire/comeback rules while moving functionality into the production Expo Router structure.
+
 ## 0.1.19 - 2026-08-22
 
 - Replaced calendar-week Comeback locking with a rolling 7-day recovery window.
@@ -78,7 +88,7 @@
 
 ## 0.1.10 - 2026-08-22
 
-- Restored the locked bottom navigation icon set with Home, clock, podium, filled gear, and the central gold Add button.
+- Restored the locked bottom navigation icon set with Home, clock, podium, filled gear, and the central Add button.
 - Restored the product name to I Can't Get My Protein.
 - Restored the locked segmented progress ring behaviour across 0–300% while preserving the locked ring track colour.
 - Pinned Expo Go-compatible vector icon and font dependencies for SDK 54.
