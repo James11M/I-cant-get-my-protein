@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.16 - 2026-08-22
+
+- Locked the preferred circular current-day marker around the Today fire icon.
+- Reworked History Week, Month, and Year views to follow the uploaded Snack POC and screenshots more closely while keeping Supabase-backed activity data.
+- Restored History period navigation, coloured day states, month score/calendar layout, year bars, and comeback cues.
+- Reworked Leaders to match the POC Leaderboard, Awards, and Stats screens, including Friends, Teams, Houses, and Schools tabs and the JAMES • YOU row treatment.
+- Reworked Secret Nerd Stuff to match the POC menu card sizing, gold borders, icons, typography, descriptions, and spacing.
+- Restored the POC strapline SCHOOL - SPORTS - AWARDS.
+
 ## 0.1.15 - 2026-08-22
 
 - Ported the Today screen styling directly from the uploaded Snack `App.js` instead of reinterpreting the approved POC.
