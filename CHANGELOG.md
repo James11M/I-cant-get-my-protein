@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.15 - 2026-08-22
+
+- Ported the Today screen styling directly from the uploaded Snack `App.js` instead of reinterpreting the approved POC.
+- Restored the gold Level card border, original typography, gold level circle text, blue Today target border, and white section headings.
+- Restored the exact 80px / 24-segment POC progress ring with 5x11 ticks and percentage-only centre text.
+- Restored the orange consistency multiplier and fire count, plus the original flame sizing and current-day underline treatment.
+- Restored the missing POC blue, orange, purple, and yellow theme accents.
+
 ## 0.1.14 - 2026-08-22
 
 - Restored the Today target card to the Snack POC structure: compact target ring, separate progress bar, and a full-width XP / consistency multiplier panel.
