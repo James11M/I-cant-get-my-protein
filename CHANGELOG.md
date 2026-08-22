@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.18 - 2026-08-22
+
+- Standardised Secret Nerd Stuff cards to a consistent height sized for two-line titles and descriptions, while vertically centring shorter options.
+- Added a larger shared gold-outline `← BACK` button and applied it across activity, workout, settings, and new secondary screens.
+- Made the Weekly Comeback card on Today open a dedicated explainer screen.
+- Added a Weekly Comeback breakdown showing excess minutes, comeback rate, generated comeback minutes, and the last seven days with normal, repaired, and partial recovery states.
+- Corrected comeback allocation so discounted excess minutes fill the most recent missed day first, then work backwards through the current week.
+- Added the 260 excess × 50% = 130 comeback-minutes POC example and clarified that repaired days affect consistency going forward without retroactive XP.
+
 ## 0.1.17 - 2026-08-22
 
 - Fine-tuned the locked circular current-day fire marker by shifting it 2px right for optical centring.
