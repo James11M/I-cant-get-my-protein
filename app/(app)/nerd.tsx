@@ -26,7 +26,10 @@ export default function NerdScreen() {
           {LINKS.map(([emoji, title, text, section]) => (
             <Pressable key={title} style={styles.link} onPress={() => router.push({ pathname: '/(app)/settings/[section]', params: { section } })}>
               <Text style={styles.emoji}>{emoji}</Text>
-              <View style={styles.copy}><Text style={styles.linkTitle}>{title}</Text><Text style={styles.linkText}>{text}</Text></View>
+              <View style={styles.copy}>
+                <Text style={styles.linkTitle}>{title}</Text>
+                <Text style={styles.linkText}>{text}</Text>
+              </View>
               <Text style={styles.arrow}>→</Text>
             </Pressable>
           ))}
@@ -38,12 +41,25 @@ export default function NerdScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { paddingBottom: 6 }, scroll: { flex: 1 }, content: { paddingBottom: 10 },
+  screen: { paddingBottom: 6 },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 10 },
   title: { color: colours.white, fontSize: 29, lineHeight: 33, fontWeight: '900', marginTop: 18, marginBottom: 8 },
   list: { gap: 9 },
-  link: { minHeight: 73, borderWidth: 1, borderColor: colours.gold, borderRadius: 13, backgroundColor: colours.card, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 11 },
-  emoji: { width: 51, fontSize: 29, textAlign: 'center', marginRight: 8 }, copy: { flex: 1 },
-  linkTitle: { color: colours.white, fontSize: 14, fontWeight: '900', letterSpacing: 0.15 },
-  linkText: { color: colours.muted, fontSize: 10, fontWeight: '600', lineHeight: 15, marginTop: 3, paddingRight: 5 },
+  link: {
+    height: 94,
+    borderWidth: 1,
+    borderColor: colours.gold,
+    borderRadius: 13,
+    backgroundColor: colours.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  emoji: { width: 51, fontSize: 29, textAlign: 'center', marginRight: 8 },
+  copy: { flex: 1, justifyContent: 'center' },
+  linkTitle: { color: colours.white, fontSize: 14, lineHeight: 18, fontWeight: '900', letterSpacing: 0.15 },
+  linkText: { color: colours.muted, fontSize: 10, fontWeight: '600', lineHeight: 15, marginTop: 4, paddingRight: 5 },
   arrow: { color: colours.gold, fontSize: 27, lineHeight: 29, fontWeight: '400', marginLeft: 8 },
 });
