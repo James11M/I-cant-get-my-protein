@@ -39,7 +39,7 @@ export default function HomeScreen() {
   const priorFireScore = Math.min(7, fireWindow.slice(0, 6).filter(Boolean).length);
   const rewardXP = FIRE_XP[priorFireScore];
   const multiplier = FIRE_MULTIPLIER[priorFireScore];
-  const comeback = getWeeklyComeback(logs, today, today);
+  const comeback = getRollingComeback(logs, today);
   const complete = todayCredit >= DAILY_TARGET;
 
   return (
@@ -117,7 +117,7 @@ export default function HomeScreen() {
           <Card style={styles.comebackCard}>
             <View style={styles.rowBetween}>
               <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View>
-              <View style={styles.comebackOpenRow}><Text style={styles.open}>{comeback.locked ? 'LOCKED' : 'OPEN'}</Text><Text style={styles.comebackArrow}>→</Text></View>
+              <View style={styles.comebackOpenRow}><Text style={styles.open}>ROLLING 7D</Text><Text style={styles.comebackArrow}>→</Text></View>
             </View>
             <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
           </Card>
@@ -131,26 +131,20 @@ export default function HomeScreen() {
 function sameDate(a: Date, b: Date) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
 function addDays(date: Date, amount: number) { const copy = new Date(date); copy.setDate(copy.getDate() + amount); copy.setHours(12, 0, 0, 0); return copy; }
-function startOfWeek(date: Date) { const copy = new Date(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); copy.setHours(12, 0, 0, 0); return copy; }
-function endOfWeek(date: Date) { return addDays(startOfWeek(date), 6); }
 function rawCreditForDate(logs: ActivityLog[], date: Date) { return logs.filter((log) => sameDate(new Date(log.performed_at), date)).reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0); }
 function normalCreditForDate(logs: ActivityLog[], date: Date) { return Math.min(DAILY_TARGET, rawCreditForDate(logs, date)); }
 function extraCreditForDate(logs: ActivityLog[], date: Date) { return Math.max(0, rawCreditForDate(logs, date) - DAILY_TARGET); }
-function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
-  const monday = startOfWeek(weekDate);
-  const sunday = endOfWeek(weekDate);
-  const currentWeek = dateKey(startOfWeek(today)) === dateKey(monday);
-  const cutoff = currentWeek ? today : sunday;
+function getRollingComeback(logs: ActivityLog[], today: Date) {
+  const windowStart = addDays(today, -6);
   const deficits: { key: string; remaining: number }[] = [];
   const recoveredByDate: Record<string, number> = {};
   let totalExtra = 0;
   let recovered = 0;
 
   for (let index = 0; index < 7; index += 1) {
-    const date = addDays(monday, index);
-    if (dateKey(date) > dateKey(cutoff)) break;
-    const raw = normalCreditForDate(logs, date);
-    const missing = Math.max(0, DAILY_TARGET - raw);
+    const date = addDays(windowStart, index);
+    const normal = normalCreditForDate(logs, date);
+    const missing = Math.max(0, DAILY_TARGET - normal);
     const extra = extraCreditForDate(logs, date);
     totalExtra += extra;
     let available = extra * COMEBACK_RATE;
@@ -169,7 +163,6 @@ function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
   }
 
   return {
-    locked: dateKey(sunday) < dateKey(today),
     recoveredByDate,
     totalExtra,
     recovered,
@@ -177,7 +170,7 @@ function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
   };
 }
 function effectiveCredit(logs: ActivityLog[], date: Date, today: Date) {
-  const comeback = getWeeklyComeback(logs, date, today);
+  const comeback = getRollingComeback(logs, today);
   return Math.min(DAILY_TARGET, normalCreditForDate(logs, date) + (comeback.recoveredByDate[dateKey(date)] || 0));
 }
 function effectiveComplete(logs: ActivityLog[], date: Date, today: Date) { return effectiveCredit(logs, date, today) >= DAILY_TARGET; }
