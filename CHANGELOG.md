@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 - 2026-08-22
+
+- Pinned Expo SDK 54 router dependencies for Expo Go compatibility, including `react-native-screens` 4.16.
+- Added the Expo Router native support packages required by SDK 54.
+
 ## 0.1.8 - 2026-08-22
 
 - Removed the stale `expo-dev-client` app plugin so Expo Go can start after the SDK 54 downgrade.
