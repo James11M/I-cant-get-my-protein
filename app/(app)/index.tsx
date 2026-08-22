@@ -11,6 +11,7 @@ import { ActivityLog, getActivityLogs } from '@/features/activities/activity.ser
 import { colours } from '@/theme/colours';
 
 const DAILY_TARGET = 30;
+const COMEBACK_RATE = 0.5;
 const FIRE_XP = [120, 132, 144, 156, 170, 190, 214, 240];
 const FIRE_MULTIPLIER = [1, 1.1, 1.2, 1.3, 1.42, 1.58, 1.78, 2];
 const LEVELS = [
@@ -112,10 +113,15 @@ export default function HomeScreen() {
           <Pressable style={styles.primary} onPress={() => router.push('/(app)/add')}><Text style={styles.primaryText}>+ ADD TRAINING</Text></Pressable>
         </Card>
 
-        <Card style={styles.comebackCard}>
-          <View style={styles.rowBetween}><View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View><Text style={styles.open}>{comeback.locked ? 'LOCKED' : 'OPEN'}</Text></View>
-          <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
-        </Card>
+        <Pressable style={styles.comebackPress} onPress={() => router.push('/(app)/comeback')}>
+          <Card style={styles.comebackCard}>
+            <View style={styles.rowBetween}>
+              <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View>
+              <View style={styles.comebackOpenRow}><Text style={styles.open}>{comeback.locked ? 'LOCKED' : 'OPEN'}</Text><Text style={styles.comebackArrow}>→</Text></View>
+            </View>
+            <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
+          </Card>
+        </Pressable>
       </ScrollView>
       <BottomNav active="today" />
     </Screen>
@@ -147,10 +153,10 @@ function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
     const missing = Math.max(0, DAILY_TARGET - raw);
     const extra = extraCreditForDate(logs, date);
     totalExtra += extra;
-    let available = extra * 0.5;
+    let available = extra * COMEBACK_RATE;
 
-    for (const deficit of deficits) {
-      if (available <= 0) break;
+    for (let deficitIndex = deficits.length - 1; deficitIndex >= 0 && available > 0; deficitIndex -= 1) {
+      const deficit = deficits[deficitIndex];
       if (deficit.remaining <= 0) continue;
       const applied = Math.min(available, deficit.remaining);
       deficit.remaining -= applied;
@@ -242,10 +248,13 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
   primaryText: { color: colours.background, fontSize: 10, fontWeight: '900' },
 
-  comebackCard: { marginTop: 12, borderColor: colours.purple },
+  comebackPress: { marginTop: 12 },
+  comebackCard: { borderColor: colours.purple },
   inline: { flexDirection: 'row', alignItems: 'center' },
   comebackIcon: { color: colours.purple, fontSize: 20, fontWeight: '900', marginRight: 7 },
   comebackLabel: { color: colours.purple, fontSize: 9, fontWeight: '900' },
+  comebackOpenRow: { flexDirection: 'row', alignItems: 'center' },
   open: { color: colours.green, fontSize: 9, fontWeight: '900' },
+  comebackArrow: { color: colours.purple, fontSize: 17, fontWeight: '900', marginLeft: 7 },
   comebackTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 7 },
 });
