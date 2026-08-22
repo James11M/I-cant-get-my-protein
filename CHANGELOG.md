@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 - 2026-08-22
+
+- Downgraded the Expo runtime to SDK 54 for Expo Go compatibility on physical iPhones.
+- Aligned React Native, React, Expo Router, Expo SQLite, and React type versions with SDK 54.
+- Added an Expo Go tunnel command for QR-code device preview.
+- Removed the development-client dependency from the default preview path.
+
 ## 0.1.6 - 2026-08-22
 
 - Restored the Today home screen to the dark navy and gold training design.
