@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.17 - 2026-08-22
+
+- Fine-tuned the locked circular current-day fire marker by shifting it 2px right for optical centring.
+- Corrected streak rewards so day 1 is always ×1.00 / base XP, with consistency multipliers beginning from day 2.
+- Tightened the Awards cards so all six badges stay in the intended two-column grid.
+- Replaced the placeholder Stats line with a scaled interactive chart with axes, grid lines, connected points, date labels, and tap-to-view values.
+- Reworked Secret Nerd Stuff from the original `App.js` treatment with larger icons and text plus the original right-arrow glyph.
+
 ## 0.1.16 - 2026-08-22
 
 - Locked the preferred circular current-day marker around the Today fire icon.
