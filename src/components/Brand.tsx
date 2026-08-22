@@ -5,7 +5,7 @@ import { colours } from '@/theme/colours';
 export function Brand() {
   return (
     <View>
-      <Text style={styles.title}>I CAN'T HIT MY PROTEIN</Text>
+      <Text style={styles.title}>I CAN'T GET MY PROTEIN</Text>
       <Text style={styles.subtitle}>SCHOOL - SPORTS - AWARDS</Text>
     </View>
   );
