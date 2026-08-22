@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5 - 2026-08-22
+
+- Fixed Supabase table grants so authenticated users can save and read their activity logs.
+
 ## 0.1.4 - 2026-08-22
 
 - Added persistent activity logging to Supabase.
