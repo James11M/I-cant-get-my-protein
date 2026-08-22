@@ -36,7 +36,17 @@ Organisation membership is optional. A user can use the app fully without joinin
 
 ## iPhone preview
 
-Install Expo Go on the iPhone. In the Codespace run `npx expo start --tunnel`, then scan the Expo QR code with the iPhone camera / Expo Go. Expo SDK 57 supports Expo Router and Expo Go. We can move to an EAS development build later when native capabilities require it.
+### Fastest preview
+
+Run `npm run phone:web` in Codespaces. Make the forwarded web port public, then open the forwarded URL in Safari on the iPhone. This gives a quick phone-sized preview without an Apple Developer account.
+
+### Native development build
+
+The production project uses Expo SDK 57, so native device testing uses an Expo development build rather than Expo Go during the SDK 57 transition.
+
+The repository includes `expo-dev-client` and an EAS development profile. Creating an iOS development build with EAS requires Apple signing credentials.
+
+Once the development build is installed, run `npm run phone:native` to connect it to the Codespaces development server.
 
 ## Security
 
