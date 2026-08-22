@@ -37,6 +37,7 @@ export default function ComebackScreen() {
       <Card style={styles.explainCard}>
         <Text style={styles.purpleLabel}>HOW IT WORKS</Text>
         <Text style={styles.body}>Your first {DAILY_TARGET} credit minutes cover today. Anything above that becomes comeback credit at {Math.round(COMEBACK_RATE * 100)}% and is applied backwards, starting with yesterday.</Text>
+        <Text style={styles.formula}>POC example: 260 excess min × 50% = 130 comeback min</Text>
       </Card>
 
       <View style={styles.summaryRow}>
@@ -53,7 +54,7 @@ export default function ComebackScreen() {
         <Card style={[styles.summaryCard, styles.purpleBorder]}>
           <Text style={styles.summaryLabel}>COMEBACK MIN</Text>
           <Text style={[styles.summaryValue, styles.purple]}>{Math.round(comebackMinutes)}</Text>
-          <Text style={styles.summaryUnit}>available</Text>
+          <Text style={styles.summaryUnit}>generated</Text>
         </Card>
       </View>
 
@@ -85,7 +86,7 @@ export default function ComebackScreen() {
                   <Text style={styles.dayMeta}>{Math.round(normal)} normal{recovered > 0 ? ` + ${Math.round(recovered)} comeback` : ''} min</Text>
                 </View>
                 <View style={styles.fireArea}>
-                  <Text style={[styles.fire, !(doneNormally || doneWithComeback) && styles.fireOff, doneWithComeback && styles.purpleFire]}>🔥</Text>
+                  <Text style={[styles.fire, !(doneNormally || doneWithComeback) && styles.fireOff]}>🔥</Text>
                   <Text style={styles.dayTotal}>{Math.round(effective)} / {DAILY_TARGET}</Text>
                 </View>
               </View>
@@ -161,6 +162,7 @@ const styles = StyleSheet.create({
   explainCard: { borderColor: colours.purple, marginBottom: 10 },
   purpleLabel: { color: colours.purple, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   body: { color: colours.white, fontSize: 10, lineHeight: 15, marginTop: 6 },
+  formula: { color: colours.purple, fontSize: 9, lineHeight: 14, fontWeight: '900', marginTop: 8 },
   summaryRow: { flexDirection: 'row', gap: 7, marginBottom: 15 },
   summaryCard: { flex: 1, padding: 9, minHeight: 88, justifyContent: 'center' },
   purpleBorder: { borderColor: colours.purple },
@@ -180,7 +182,6 @@ const styles = StyleSheet.create({
   fireArea: { alignItems: 'center', minWidth: 54 },
   fire: { fontSize: 24 },
   fireOff: { opacity: 0.18 },
-  purpleFire: { tintColor: colours.purple },
   dayTotal: { color: colours.muted, fontSize: 7, fontWeight: '900', marginTop: 1 },
   partial: { color: colours.purple, fontSize: 8, fontWeight: '800', marginTop: 6 },
   repaired: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 6 },
