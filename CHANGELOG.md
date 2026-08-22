@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-08-22
+
+- Added a fast Codespaces-to-iPhone web preview command.
+- Added Expo development-client support for native iPhone testing.
+- Updated iPhone preview guidance for Expo SDK 57.
+
 ## 0.1.0 - 2026-08-22
 
 - Created the Expo SDK 57 + TypeScript + Expo Router production foundation.
