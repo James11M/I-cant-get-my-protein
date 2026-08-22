@@ -14,12 +14,18 @@ const RADIUS = 78;
 function tickColour(index: number, percentage: number) {
   if (percentage >= 300) return colours.gold;
 
-  const progressTicks = Math.min(TICKS, Math.round((Math.min(percentage, 100) / 100) * TICKS));
-  if (index >= progressTicks) return colours.ringTrack;
+  if (percentage >= 200) {
+    const overlay = Math.round(((percentage - 200) / 100) * TICKS);
+    return index < overlay ? colours.green3 : colours.green2;
+  }
 
-  if (percentage >= 200) return colours.green3;
-  if (percentage >= 100) return colours.green2;
-  return colours.green1;
+  if (percentage >= 100) {
+    const overlay = Math.round(((percentage - 100) / 100) * TICKS);
+    return index < overlay ? colours.green2 : colours.green1;
+  }
+
+  const filled = Math.round((Math.max(0, percentage) / 100) * TICKS);
+  return index < filled ? colours.green1 : colours.ringTrack;
 }
 
 export function ProgressRing({ minutes, target = 30 }: Props) {
