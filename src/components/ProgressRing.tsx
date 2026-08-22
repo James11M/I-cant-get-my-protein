@@ -8,8 +8,8 @@ type Props = {
 };
 
 const TICKS = 24;
-const SIZE = 160;
-const RADIUS = 66;
+const SIZE = 120;
+const RADIUS = 49;
 
 function tickColour(index: number, percentage: number) {
   if (percentage >= 300) return colours.gold;
@@ -36,8 +36,8 @@ export function ProgressRing({ minutes, target = 30 }: Props) {
       <View style={styles.ring}>
         {Array.from({ length: TICKS }).map((_, index) => {
           const angle = (index / TICKS) * Math.PI * 2 - Math.PI / 2;
-          const x = SIZE / 2 + Math.cos(angle) * RADIUS - 2.5;
-          const y = SIZE / 2 + Math.sin(angle) * RADIUS - 8.5;
+          const x = SIZE / 2 + Math.cos(angle) * RADIUS - 2;
+          const y = SIZE / 2 + Math.sin(angle) * RADIUS - 6.5;
 
           return (
             <View
@@ -64,10 +64,10 @@ export function ProgressRing({ minutes, target = 30 }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 2 },
+  wrap: { alignItems: 'center', justifyContent: 'center' },
   ring: { width: SIZE, height: SIZE, position: 'relative' },
-  tick: { position: 'absolute', width: 5, height: 17, borderRadius: 4 },
+  tick: { position: 'absolute', width: 4, height: 13, borderRadius: 4 },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  percentage: { color: colours.white, fontSize: 30, fontWeight: '900' },
-  minutes: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 1.2, marginTop: 3 },
+  percentage: { color: colours.white, fontSize: 23, fontWeight: '900' },
+  minutes: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 0.9, marginTop: 2 },
 });
