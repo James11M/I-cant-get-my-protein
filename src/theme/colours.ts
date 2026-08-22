@@ -1,0 +1,15 @@
+export const colours = {
+  background: '#07101E',
+  card: '#0D1B2C',
+  card2: '#14263B',
+  ringTrack: '#192F48', // locked design
+  border: '#29405B',
+  white: '#F7F7F3',
+  muted: '#9CAABD',
+  gold: '#E8B632',
+  green1: '#78D995',
+  green2: '#39B865',
+  green3: '#188B46',
+  green: '#48C96B',
+  red: '#E85A5A',
+};
