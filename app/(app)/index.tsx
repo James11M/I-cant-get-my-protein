@@ -29,15 +29,19 @@ export default function HomeScreen() {
   }, []));
 
   const todaysLogs = logs.filter((log) => sameDate(new Date(log.performed_at), today));
-  const todayCredit = todaysLogs.reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0);
-  const activeXP = Math.round(logs.reduce((sum, log) => sum + (Number(log.credit_minutes || 0) / DAILY_TARGET) * 120, 0));
+  const rawTodayCredit = rawCreditForDate(logs, today);
+  const todayCredit = Math.min(DAILY_TARGET, rawTodayCredit);
+  const activeXP = Math.round(logs.reduce((sum, log) => sum + (Math.min(DAILY_TARGET, Number(log.credit_minutes || 0)) / DAILY_TARGET) * 120, 0));
   const rank = getRank(activeXP);
   const fireWindow = getFireWindow(logs, today);
   const fireScore = fireWindow.filter(Boolean).length;
-  const projectedFire = todayCredit >= DAILY_TARGET ? fireScore : Math.min(7, fireWindow.slice(0, 6).filter(Boolean).length + 1);
+  const projectedFire = effectiveComplete(logs, today, today)
+    ? fireScore
+    : Math.min(7, fireWindow.slice(0, 6).filter(Boolean).length + 1);
   const rewardXP = FIRE_XP[projectedFire];
   const multiplier = FIRE_MULTIPLIER[projectedFire];
-  const missing = getWeeklyMissing(logs, today);
+  const comeback = getWeeklyComeback(logs, today, today);
+  const complete = todayCredit >= DAILY_TARGET;
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
@@ -57,16 +61,29 @@ export default function HomeScreen() {
             <View style={styles.levelCircle}><Text style={styles.levelNumber}>{rank.level}</Text></View>
           </View>
           <View style={styles.levelTrack}><View style={[styles.levelFill, { width: `${rank.progress}%` }]} /></View>
+          <Text style={styles.tinyMuted}>Rolling 12-month XP</Text>
         </Card>
 
         <Card style={styles.targetCard}>
-          <Text style={styles.sectionTitle}>TODAY'S TARGET</Text>
           <View style={styles.targetTop}>
-            <View style={styles.ringWrap}><ProgressRing minutes={todayCredit} target={DAILY_TARGET} /></View>
-            <View style={styles.rewardPanel}>
+            <View style={styles.targetCopy}>
+              <Text style={styles.sectionTitle}>TODAY'S TARGET</Text>
+              <Text style={[styles.targetValue, complete && styles.targetValueComplete]}>{Math.round(rawTodayCredit)} / 30</Text>
+              <Text style={styles.smallMuted}>credit minutes</Text>
+            </View>
+            <View style={styles.ringWrap}><ProgressRing minutes={rawTodayCredit} target={DAILY_TARGET} /></View>
+          </View>
+
+          <View style={styles.targetTrack}>
+            <View style={[styles.targetFill, { width: `${Math.min(100, (rawTodayCredit / DAILY_TARGET) * 100)}%`, backgroundColor: complete ? colours.green : colours.gold }]} />
+          </View>
+
+          <View style={styles.rewardPanel}>
+            <View style={styles.rewardSide}>
+              <Text style={styles.rewardLabel}>{complete ? 'XP EARNED' : 'WHEN COMPLETE'}</Text>
               <Text style={styles.rewardXp}>+{rewardXP} XP</Text>
-              <Text style={styles.rewardSub}>TODAY'S REWARD</Text>
-              <View style={styles.rewardDivider} />
+            </View>
+            <View style={styles.rewardRight}>
               <Text style={styles.multiplier}>×{multiplier.toFixed(2)}</Text>
               <Text style={styles.rewardSub}>consistency boost</Text>
             </View>
@@ -75,7 +92,7 @@ export default function HomeScreen() {
           <View style={styles.fireSection}>
             <View style={styles.flex}>
               <Text style={styles.fireLabel}>7-DAY FIRE SCORE</Text>
-              <View style={styles.fireRow}>{fireWindow.map((complete, index) => <View key={index} style={[styles.fireBubble, index === 6 && styles.fireToday]}><Text style={[styles.fireEmoji, !complete && styles.fireOff]}>🔥</Text></View>)}</View>
+              <View style={styles.fireRow}>{fireWindow.map((done, index) => <View key={index} style={[styles.fireBubble, index === 6 && styles.fireToday]}><Text style={[styles.fireEmoji, !done && styles.fireOff]}>🔥</Text></View>)}</View>
             </View>
             <Text style={styles.fireCount}>{fireScore}</Text>
           </View>
@@ -92,8 +109,8 @@ export default function HomeScreen() {
         </Card>
 
         <Card style={styles.comebackCard}>
-          <View style={styles.rowBetween}><View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View><Text style={styles.open}>OPEN</Text></View>
-          <Text style={styles.comebackTitle}>{Math.round(missing)} missing minutes</Text>
+          <View style={styles.rowBetween}><View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View><Text style={styles.open}>{comeback.locked ? 'LOCKED' : 'OPEN'}</Text></View>
+          <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
         </Card>
       </ScrollView>
       <BottomNav active="today" />
@@ -102,12 +119,59 @@ export default function HomeScreen() {
 }
 
 function sameDate(a: Date, b: Date) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
-function dateKey(date: Date) { return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; }
-function addDays(date: Date, amount: number) { const copy = new Date(date); copy.setDate(copy.getDate() + amount); return copy; }
-function startOfWeek(date: Date) { const copy = new Date(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); return copy; }
-function creditForDate(logs: ActivityLog[], date: Date) { return logs.filter((log) => sameDate(new Date(log.performed_at), date)).reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0); }
-function getFireWindow(logs: ActivityLog[], today: Date) { return Array.from({ length: 7 }, (_, index) => creditForDate(logs, addDays(today, index - 6)) >= DAILY_TARGET); }
-function getWeeklyMissing(logs: ActivityLog[], today: Date) { const monday = startOfWeek(today); let missing = 0; for (let i = 0; i < 7; i += 1) { const date = addDays(monday, i); if (dateKey(date) > dateKey(today)) break; missing += Math.max(0, DAILY_TARGET - Math.min(DAILY_TARGET, creditForDate(logs, date))); } return missing; }
+function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+function addDays(date: Date, amount: number) { const copy = new Date(date); copy.setDate(copy.getDate() + amount); copy.setHours(12, 0, 0, 0); return copy; }
+function startOfWeek(date: Date) { const copy = new Date(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); copy.setHours(12, 0, 0, 0); return copy; }
+function endOfWeek(date: Date) { return addDays(startOfWeek(date), 6); }
+function rawCreditForDate(logs: ActivityLog[], date: Date) { return logs.filter((log) => sameDate(new Date(log.performed_at), date)).reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0); }
+function normalCreditForDate(logs: ActivityLog[], date: Date) { return Math.min(DAILY_TARGET, rawCreditForDate(logs, date)); }
+function extraCreditForDate(logs: ActivityLog[], date: Date) { return Math.max(0, rawCreditForDate(logs, date) - DAILY_TARGET); }
+function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
+  const monday = startOfWeek(weekDate);
+  const sunday = endOfWeek(weekDate);
+  const currentWeek = dateKey(startOfWeek(today)) === dateKey(monday);
+  const cutoff = currentWeek ? today : sunday;
+  const deficits: { key: string; remaining: number }[] = [];
+  const recoveredByDate: Record<string, number> = {};
+  let totalExtra = 0;
+  let recovered = 0;
+
+  for (let index = 0; index < 7; index += 1) {
+    const date = addDays(monday, index);
+    if (dateKey(date) > dateKey(cutoff)) break;
+    const raw = normalCreditForDate(logs, date);
+    const missing = Math.max(0, DAILY_TARGET - raw);
+    const extra = extraCreditForDate(logs, date);
+    totalExtra += extra;
+    let available = extra * 0.5;
+
+    for (const deficit of deficits) {
+      if (available <= 0) break;
+      if (deficit.remaining <= 0) continue;
+      const applied = Math.min(available, deficit.remaining);
+      deficit.remaining -= applied;
+      available -= applied;
+      recovered += applied;
+      recoveredByDate[deficit.key] = (recoveredByDate[deficit.key] || 0) + applied;
+    }
+
+    if (missing > 0) deficits.push({ key: dateKey(date), remaining: missing });
+  }
+
+  return {
+    locked: dateKey(sunday) < dateKey(today),
+    recoveredByDate,
+    totalExtra,
+    recovered,
+    missing: deficits.reduce((sum, item) => sum + item.remaining, 0),
+  };
+}
+function effectiveCredit(logs: ActivityLog[], date: Date, today: Date) {
+  const comeback = getWeeklyComeback(logs, date, today);
+  return Math.min(DAILY_TARGET, normalCreditForDate(logs, date) + (comeback.recoveredByDate[dateKey(date)] || 0));
+}
+function effectiveComplete(logs: ActivityLog[], date: Date, today: Date) { return effectiveCredit(logs, date, today) >= DAILY_TARGET; }
+function getFireWindow(logs: ActivityLog[], today: Date) { return Array.from({ length: 7 }, (_, index) => { const date = addDays(today, index - 6); return effectiveComplete(logs, date, today); }); }
 function getRank(xp: number) {
   let current = LEVELS[0]; let next: typeof LEVELS[number] | null = LEVELS[1];
   LEVELS.forEach((level, index) => { if (xp >= level[2]) { current = level; next = LEVELS[index + 1] || null; } });
@@ -119,9 +183,10 @@ function getRank(xp: number) {
 const styles = StyleSheet.create({
   screen: { paddingBottom: 6 }, scroll: { flex: 1 }, scrollContent: { paddingBottom: 10 },
   title: { color: colours.white, fontSize: 31, lineHeight: 34, fontWeight: '900', marginTop: 18 }, subtitle: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.8, marginTop: 2, marginBottom: 8 },
-  levelCard: { paddingVertical: 11 }, rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, flex: { flex: 1 }, goldLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, levelTitle: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 1 }, activeXp: { color: colours.white, fontSize: 9, fontWeight: '900', marginTop: 2 }, nextLevel: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 2 }, levelCircle: { width: 49, height: 49, borderRadius: 25, borderWidth: 3, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, levelNumber: { color: colours.white, fontSize: 24, fontWeight: '900' }, levelTrack: { height: 6, borderRadius: 4, backgroundColor: colours.card3 || colours.ringTrack, marginTop: 9, overflow: 'hidden' }, levelFill: { height: '100%', backgroundColor: colours.gold, borderRadius: 4 },
-  targetCard: { marginTop: 7, paddingVertical: 10 }, sectionTitle: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, targetTop: { flexDirection: 'row', alignItems: 'center', minHeight: 150 }, ringWrap: { width: 176, marginLeft: -6 }, rewardPanel: { flex: 1, backgroundColor: colours.card2, borderRadius: 12, minHeight: 115, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 }, rewardXp: { color: colours.gold, fontSize: 22, fontWeight: '900' }, rewardSub: { color: colours.muted, fontSize: 7, fontWeight: '900', textAlign: 'center', marginTop: 2 }, rewardDivider: { width: '75%', height: 1, backgroundColor: colours.border, marginVertical: 8 }, multiplier: { color: colours.white, fontSize: 17, fontWeight: '900' },
-  fireSection: { borderTopWidth: 1, borderTopColor: colours.border, flexDirection: 'row', alignItems: 'center', paddingTop: 8 }, fireLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, fireRow: { flexDirection: 'row', gap: 3, marginTop: 4 }, fireBubble: { width: 25, height: 25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }, fireToday: { borderWidth: 1, borderColor: colours.gold }, fireEmoji: { fontSize: 15 }, fireOff: { opacity: 0.18 }, fireCount: { color: colours.white, fontSize: 26, fontWeight: '900', marginLeft: 7 },
+  levelCard: { paddingVertical: 11 }, rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, flex: { flex: 1 }, goldLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, levelTitle: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 1 }, activeXp: { color: colours.white, fontSize: 9, fontWeight: '900', marginTop: 2 }, nextLevel: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 2 }, levelCircle: { width: 49, height: 49, borderRadius: 25, borderWidth: 3, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, levelNumber: { color: colours.white, fontSize: 24, fontWeight: '900' }, levelTrack: { height: 6, borderRadius: 4, backgroundColor: colours.card3, marginTop: 9, overflow: 'hidden' }, levelFill: { height: '100%', backgroundColor: colours.gold, borderRadius: 4 }, tinyMuted: { color: colours.muted, fontSize: 7, fontWeight: '700', marginTop: 5 },
+  targetCard: { marginTop: 7, paddingVertical: 10 }, sectionTitle: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, targetTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 122 }, targetCopy: { flex: 1, paddingRight: 12 }, targetValue: { color: colours.white, fontSize: 31, lineHeight: 34, fontWeight: '900', marginTop: 4 }, targetValueComplete: { color: colours.green }, smallMuted: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 1 }, ringWrap: { width: '43%', maxWidth: 128, alignItems: 'flex-end' }, targetTrack: { height: 6, borderRadius: 4, backgroundColor: colours.card3, overflow: 'hidden', marginTop: 2 }, targetFill: { height: '100%', borderRadius: 4 },
+  rewardPanel: { backgroundColor: colours.card2, borderRadius: 12, minHeight: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, marginTop: 9 }, rewardSide: { flex: 1, minWidth: 0 }, rewardRight: { alignItems: 'flex-end', minWidth: 105, marginLeft: 12 }, rewardLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, rewardXp: { color: colours.gold, fontSize: 22, fontWeight: '900', marginTop: 2 }, rewardSub: { color: colours.muted, fontSize: 7, fontWeight: '900', marginTop: 2 }, multiplier: { color: colours.white, fontSize: 18, fontWeight: '900' },
+  fireSection: { borderTopWidth: 1, borderTopColor: colours.border, flexDirection: 'row', alignItems: 'center', paddingTop: 8, marginTop: 9 }, fireLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, fireRow: { flexDirection: 'row', gap: 3, marginTop: 4 }, fireBubble: { width: 25, height: 25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }, fireToday: { borderWidth: 1, borderColor: colours.gold }, fireEmoji: { fontSize: 15 }, fireOff: { opacity: 0.18 }, fireCount: { color: colours.white, fontSize: 26, fontWeight: '900', marginLeft: 7 },
   capacityRow: { borderTopWidth: 1, borderTopColor: colours.border, marginTop: 8, paddingTop: 7 }, capacityLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, capacityValue: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 1 },
   activityCard: { marginTop: 7, paddingVertical: 10 }, empty: { alignItems: 'center', paddingVertical: 8 }, emptyEmoji: { fontSize: 19 }, emptyText: { color: colours.muted, fontSize: 10, fontWeight: '800', marginTop: 3 }, loggedRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colours.border }, loggedEmoji: { fontSize: 20, marginRight: 9 }, loggedTitle: { color: colours.white, fontSize: 11, fontWeight: '900' }, loggedMeta: { color: colours.muted, fontSize: 8, marginTop: 2 }, primary: { backgroundColor: colours.gold, borderRadius: 11, minHeight: 39, alignItems: 'center', justifyContent: 'center', marginTop: 8 }, primaryText: { color: colours.background, fontSize: 9, fontWeight: '900', letterSpacing: 0.9 },
   comebackCard: { marginTop: 7, borderColor: '#9A72E8', paddingVertical: 10 }, inline: { flexDirection: 'row', alignItems: 'center' }, comebackIcon: { color: '#9A72E8', fontSize: 20, fontWeight: '900', marginRight: 7 }, comebackLabel: { color: '#9A72E8', fontSize: 8, fontWeight: '900', letterSpacing: 1 }, open: { color: colours.green, fontSize: 8, fontWeight: '900', letterSpacing: 1 }, comebackTitle: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 5 },
