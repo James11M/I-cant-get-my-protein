@@ -60,26 +60,26 @@ export default function HomeScreen() {
             </View>
             <View style={styles.levelCircle}><Text style={styles.levelNumber}>{rank.level}</Text></View>
           </View>
-          <View style={styles.levelTrack}><View style={[styles.levelFill, { width: `${rank.progress}%` }]} /></View>
+          <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${rank.progress}%` }]} /></View>
           <Text style={styles.tinyMuted}>Rolling 12-month XP</Text>
         </Card>
 
         <Card style={styles.targetCard}>
-          <View style={styles.targetTop}>
-            <View style={styles.targetCopy}>
+          <View style={styles.rowBetween}>
+            <View>
               <Text style={styles.sectionTitle}>TODAY'S TARGET</Text>
               <Text style={[styles.targetValue, complete && styles.targetValueComplete]}>{Math.round(rawTodayCredit)} / 30</Text>
               <Text style={styles.smallMuted}>credit minutes</Text>
             </View>
-            <View style={styles.ringWrap}><ProgressRing minutes={rawTodayCredit} target={DAILY_TARGET} /></View>
+            <ProgressRing minutes={rawTodayCredit} target={DAILY_TARGET} />
           </View>
 
-          <View style={styles.targetTrack}>
-            <View style={[styles.targetFill, { width: `${Math.min(100, (rawTodayCredit / DAILY_TARGET) * 100)}%`, backgroundColor: complete ? colours.green : colours.gold }]} />
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${Math.min(100, (rawTodayCredit / DAILY_TARGET) * 100)}%`, backgroundColor: complete ? colours.green : colours.gold }]} />
           </View>
 
           <View style={styles.rewardPanel}>
-            <View style={styles.rewardSide}>
+            <View>
               <Text style={styles.rewardLabel}>{complete ? 'XP EARNED' : 'WHEN COMPLETE'}</Text>
               <Text style={styles.rewardXp}>+{rewardXP} XP</Text>
             </View>
@@ -92,7 +92,13 @@ export default function HomeScreen() {
           <View style={styles.fireSection}>
             <View style={styles.flex}>
               <Text style={styles.fireLabel}>7-DAY FIRE SCORE</Text>
-              <View style={styles.fireRow}>{fireWindow.map((done, index) => <View key={index} style={[styles.fireBubble, index === 6 && styles.fireToday]}><Text style={[styles.fireEmoji, !done && styles.fireOff]}>🔥</Text></View>)}</View>
+              <View style={styles.fireRow}>
+                {fireWindow.map((done, index) => (
+                  <View key={index} style={[styles.fireWrap, index === 6 && styles.fireToday]}>
+                    <Text style={[styles.fireEmoji, !done && styles.fireOff]}>🔥</Text>
+                  </View>
+                ))}
+              </View>
             </View>
             <Text style={styles.fireCount}>{fireScore}</Text>
           </View>
@@ -181,13 +187,67 @@ function getRank(xp: number) {
 }
 
 const styles = StyleSheet.create({
-  screen: { paddingBottom: 6 }, scroll: { flex: 1 }, scrollContent: { paddingBottom: 10 },
-  title: { color: colours.white, fontSize: 31, lineHeight: 34, fontWeight: '900', marginTop: 18 }, subtitle: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.8, marginTop: 2, marginBottom: 8 },
-  levelCard: { paddingVertical: 11 }, rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, flex: { flex: 1 }, goldLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, levelTitle: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 1 }, activeXp: { color: colours.white, fontSize: 9, fontWeight: '900', marginTop: 2 }, nextLevel: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 2 }, levelCircle: { width: 49, height: 49, borderRadius: 25, borderWidth: 3, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, levelNumber: { color: colours.white, fontSize: 24, fontWeight: '900' }, levelTrack: { height: 6, borderRadius: 4, backgroundColor: colours.card3, marginTop: 9, overflow: 'hidden' }, levelFill: { height: '100%', backgroundColor: colours.gold, borderRadius: 4 }, tinyMuted: { color: colours.muted, fontSize: 7, fontWeight: '700', marginTop: 5 },
-  targetCard: { marginTop: 7, paddingVertical: 10 }, sectionTitle: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 }, targetTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 122 }, targetCopy: { flex: 1, paddingRight: 12 }, targetValue: { color: colours.white, fontSize: 31, lineHeight: 34, fontWeight: '900', marginTop: 4 }, targetValueComplete: { color: colours.green }, smallMuted: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 1 }, ringWrap: { width: '43%', maxWidth: 128, alignItems: 'flex-end' }, targetTrack: { height: 6, borderRadius: 4, backgroundColor: colours.card3, overflow: 'hidden', marginTop: 2 }, targetFill: { height: '100%', borderRadius: 4 },
-  rewardPanel: { backgroundColor: colours.card2, borderRadius: 12, minHeight: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, marginTop: 9 }, rewardSide: { flex: 1, minWidth: 0 }, rewardRight: { alignItems: 'flex-end', minWidth: 105, marginLeft: 12 }, rewardLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, rewardXp: { color: colours.gold, fontSize: 22, fontWeight: '900', marginTop: 2 }, rewardSub: { color: colours.muted, fontSize: 7, fontWeight: '900', marginTop: 2 }, multiplier: { color: colours.white, fontSize: 18, fontWeight: '900' },
-  fireSection: { borderTopWidth: 1, borderTopColor: colours.border, flexDirection: 'row', alignItems: 'center', paddingTop: 8, marginTop: 9 }, fireLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, fireRow: { flexDirection: 'row', gap: 3, marginTop: 4 }, fireBubble: { width: 25, height: 25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }, fireToday: { borderWidth: 1, borderColor: colours.gold }, fireEmoji: { fontSize: 15 }, fireOff: { opacity: 0.18 }, fireCount: { color: colours.white, fontSize: 26, fontWeight: '900', marginLeft: 7 },
-  capacityRow: { borderTopWidth: 1, borderTopColor: colours.border, marginTop: 8, paddingTop: 7 }, capacityLabel: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 1 }, capacityValue: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 1 },
-  activityCard: { marginTop: 7, paddingVertical: 10 }, empty: { alignItems: 'center', paddingVertical: 8 }, emptyEmoji: { fontSize: 19 }, emptyText: { color: colours.muted, fontSize: 10, fontWeight: '800', marginTop: 3 }, loggedRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colours.border }, loggedEmoji: { fontSize: 20, marginRight: 9 }, loggedTitle: { color: colours.white, fontSize: 11, fontWeight: '900' }, loggedMeta: { color: colours.muted, fontSize: 8, marginTop: 2 }, primary: { backgroundColor: colours.gold, borderRadius: 11, minHeight: 39, alignItems: 'center', justifyContent: 'center', marginTop: 8 }, primaryText: { color: colours.background, fontSize: 9, fontWeight: '900', letterSpacing: 0.9 },
-  comebackCard: { marginTop: 7, borderColor: '#9A72E8', paddingVertical: 10 }, inline: { flexDirection: 'row', alignItems: 'center' }, comebackIcon: { color: '#9A72E8', fontSize: 20, fontWeight: '900', marginRight: 7 }, comebackLabel: { color: '#9A72E8', fontSize: 8, fontWeight: '900', letterSpacing: 1 }, open: { color: colours.green, fontSize: 8, fontWeight: '900', letterSpacing: 1 }, comebackTitle: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 5 },
+  screen: { paddingBottom: 6 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: 10 },
+  title: { color: colours.white, fontSize: 29, fontWeight: '900', marginTop: 18, marginBottom: 8 },
+  subtitle: { color: colours.muted, fontSize: 11, lineHeight: 17, marginBottom: 14 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  flex: { flex: 1 },
+  goldLabel: { color: colours.gold, fontSize: 9, fontWeight: '900' },
+  sectionTitle: { color: colours.white, fontSize: 11, fontWeight: '900', letterSpacing: 0.4 },
+  smallMuted: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
+  tinyMuted: { color: colours.muted, fontSize: 7, marginTop: 5 },
+
+  levelCard: { borderColor: colours.gold },
+  levelTitle: { color: colours.white, fontSize: 23, fontWeight: '900', marginTop: 2 },
+  activeXp: { color: colours.white, fontSize: 12, fontWeight: '800', marginTop: 5 },
+  nextLevel: { color: colours.gold, fontSize: 10, fontWeight: '900', marginTop: 5 },
+  levelCircle: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
+  levelNumber: { color: colours.gold, fontSize: 23, fontWeight: '900' },
+
+  progressTrack: { height: 8, borderRadius: 4, backgroundColor: colours.card2, overflow: 'hidden', marginTop: 11 },
+  progressFill: { height: '100%', backgroundColor: colours.gold },
+
+  targetCard: { marginTop: 12, borderColor: colours.blue },
+  targetValue: { color: colours.white, fontSize: 28, fontWeight: '900', marginTop: 5 },
+  targetValueComplete: { color: colours.green },
+
+  rewardPanel: { backgroundColor: colours.card2, borderRadius: 11, padding: 11, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 13 },
+  rewardLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' },
+  rewardXp: { color: colours.gold, fontSize: 21, fontWeight: '900', marginTop: 2 },
+  rewardRight: { alignItems: 'flex-end' },
+  multiplier: { color: colours.orange, fontSize: 16, fontWeight: '900' },
+  rewardSub: { color: colours.muted, fontSize: 7 },
+
+  fireSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14 },
+  fireLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' },
+  fireRow: { flexDirection: 'row', marginTop: 3 },
+  fireWrap: { width: 28, height: 31, alignItems: 'center', justifyContent: 'center' },
+  fireToday: { borderBottomWidth: 2, borderBottomColor: colours.gold },
+  fireEmoji: { fontSize: 22 },
+  fireOff: { opacity: 0.18 },
+  fireCount: { color: colours.orange, fontSize: 27, fontWeight: '900', marginBottom: 2 },
+
+  capacityRow: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colours.border, paddingTop: 11, marginTop: 12 },
+  capacityLabel: { color: colours.muted, fontSize: 7, fontWeight: '900' },
+  capacityValue: { color: colours.white, fontSize: 12, fontWeight: '900', marginTop: 3 },
+
+  activityCard: { marginTop: 12 },
+  empty: { alignItems: 'center', paddingVertical: 18 },
+  emptyEmoji: { fontSize: 27 },
+  emptyText: { color: colours.white, fontSize: 11, fontWeight: '900', marginTop: 5 },
+  loggedRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: colours.border, marginTop: 8, paddingTop: 8 },
+  loggedEmoji: { width: 38, fontSize: 21 },
+  loggedTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
+  loggedMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
+  primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
+  primaryText: { color: colours.background, fontSize: 10, fontWeight: '900' },
+
+  comebackCard: { marginTop: 12, borderColor: colours.purple },
+  inline: { flexDirection: 'row', alignItems: 'center' },
+  comebackIcon: { color: colours.purple, fontSize: 20, fontWeight: '900', marginRight: 7 },
+  comebackLabel: { color: colours.purple, fontSize: 9, fontWeight: '900' },
+  open: { color: colours.green, fontSize: 9, fontWeight: '900' },
+  comebackTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 7 },
 });
