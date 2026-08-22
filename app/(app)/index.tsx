@@ -35,11 +35,9 @@ export default function HomeScreen() {
   const rank = getRank(activeXP);
   const fireWindow = getFireWindow(logs, today);
   const fireScore = fireWindow.filter(Boolean).length;
-  const projectedFire = effectiveComplete(logs, today, today)
-    ? fireScore
-    : Math.min(7, fireWindow.slice(0, 6).filter(Boolean).length + 1);
-  const rewardXP = FIRE_XP[projectedFire];
-  const multiplier = FIRE_MULTIPLIER[projectedFire];
+  const priorFireScore = Math.min(7, fireWindow.slice(0, 6).filter(Boolean).length);
+  const rewardXP = FIRE_XP[priorFireScore];
+  const multiplier = FIRE_MULTIPLIER[priorFireScore];
   const comeback = getWeeklyComeback(logs, today, today);
   const complete = todayCredit >= DAILY_TARGET;
 
@@ -224,7 +222,7 @@ const styles = StyleSheet.create({
   fireLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' },
   fireRow: { flexDirection: 'row', marginTop: 3 },
   fireWrap: { width: 28, height: 31, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  fireToday: { borderWidth: 2, borderColor: colours.gold },
+  fireToday: { borderWidth: 2, borderColor: colours.gold, transform: [{ translateX: 2 }] },
   fireEmoji: { fontSize: 22 },
   fireOff: { opacity: 0.18 },
   fireCount: { color: colours.orange, fontSize: 27, fontWeight: '900', marginBottom: 2 },
