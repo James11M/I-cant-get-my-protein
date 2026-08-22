@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.19 - 2026-08-22
+
+- Replaced calendar-week Comeback locking with a rolling 7-day recovery window.
+- Limited comeback allocation to today plus the previous six days, so older dates automatically lock and can never be backfilled later.
+- Kept comeback allocation recent-first within the eligible seven-day window and aligned the Today fire calculation to the same rolling window.
+- Updated the Comeback explainer and Today card wording to make the rolling 7-day rule explicit.
+
 ## 0.1.18 - 2026-08-22
 
 - Standardised Secret Nerd Stuff cards to a consistent height sized for two-line titles and descriptions, while vertically centring shorter options.
