@@ -6,7 +6,7 @@
   "scripts": {
     "start": "expo start",
     "phone:web": "expo start --web --host lan",
-    "phone:native": "expo start --dev-client --tunnel",
+    "phone:go": "expo start --tunnel",
     "web": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -14,18 +14,17 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
-    "expo": "~57.0.0",
-    "expo-dev-client": "~57.0.10",
-    "expo-router": "~57.0.10",
-    "expo-sqlite": "~57.0.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-native": "0.86.0",
+    "expo": "~54.0.35",
+    "expo-router": "~6.0.24",
+    "expo-sqlite": "~16.0.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
     "react-native-url-polyfill": "^3.0.0",
     "react-native-web": "~0.21.0"
   },
   "devDependencies": {
-    "@types/react": "~19.2.0",
+    "@types/react": "~19.1.10",
     "typescript": "~5.9.2"
   }
 }
