@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 - 2026-08-22
+
+- Restored the Today home screen to the dark navy and gold training design.
+- Added the segmented daily progress ring using the locked ring track colour.
+- Added Today stats, quick activity action, History link, and bottom navigation styling.
+
 ## 0.1.5 - 2026-08-22
 
 - Fixed Supabase table grants so authenticated users can save and read their activity logs.
