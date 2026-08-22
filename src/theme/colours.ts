@@ -2,7 +2,8 @@ export const colours = {
   background: '#07101E',
   card: '#0D1B2C',
   card2: '#14263B',
-  ringTrack: '#192F48', // locked design
+  card3: '#192F48',
+  ringTrack: '#192F48',
   border: '#29405B',
   white: '#F7F7F3',
   muted: '#9CAABD',
