@@ -23,26 +23,26 @@ export default function ComebackScreen() {
     return () => { live = false; };
   }, []));
 
-  const comeback = getWeeklyComeback(logs, today, today);
+  const comeback = getRollingComeback(logs, today);
   const comebackMinutes = comeback.totalExtra * COMEBACK_RATE;
-  const weekDays = Array.from({ length: 7 }, (_, index) => addDays(today, index - 6));
+  const rollingDays = Array.from({ length: 7 }, (_, index) => addDays(today, index - 6));
 
   return (
     <Screen>
       <Brand />
       <BackButton />
       <Text style={styles.title}>Weekly Comeback</Text>
-      <Text style={styles.subtitle}>Extra training can repair missed minutes earlier in the same week.</Text>
+      <Text style={styles.subtitle}>Extra training can repair missed minutes inside your rolling 7-day window.</Text>
 
       <Card style={styles.explainCard}>
         <Text style={styles.purpleLabel}>HOW IT WORKS</Text>
-        <Text style={styles.body}>Your first {DAILY_TARGET} credit minutes cover today. Anything above that becomes comeback credit at {Math.round(COMEBACK_RATE * 100)}% and is applied backwards, starting with yesterday.</Text>
+        <Text style={styles.body}>Your first {DAILY_TARGET} credit minutes cover today. Anything above that becomes comeback credit at {Math.round(COMEBACK_RATE * 100)}% and is applied backwards, starting with yesterday. Once a day falls outside the last 7 days it locks and cannot be repaired.</Text>
         <Text style={styles.formula}>POC example: 260 excess min × 50% = 130 comeback min</Text>
       </Card>
 
       <View style={styles.summaryRow}>
         <Card style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>EXCESS THIS WEEK</Text>
+          <Text style={styles.summaryLabel}>EXCESS • LAST 7D</Text>
           <Text style={styles.summaryValue}>{Math.round(comeback.totalExtra)}</Text>
           <Text style={styles.summaryUnit}>raw min</Text>
         </Card>
@@ -60,7 +60,7 @@ export default function ComebackScreen() {
 
       <Text style={styles.sectionTitle}>LAST 7 DAYS</Text>
       <View style={styles.dayList}>
-        {weekDays.map((date) => {
+        {rollingDays.map((date) => {
           const key = dateKey(date);
           const normal = normalCreditForDate(logs, date);
           const recovered = comeback.recoveredByDate[key] || 0;
@@ -99,7 +99,7 @@ export default function ComebackScreen() {
 
       <Card style={styles.ruleCard}>
         <Text style={styles.purpleLabel}>CONSISTENCY</Text>
-        <Text style={styles.body}>A repaired day counts as complete for your fire score from today forward. Comeback never awards XP retroactively, and a new week cannot repair the previous week.</Text>
+        <Text style={styles.body}>A repaired day counts as complete for your fire score from today forward. Comeback never awards XP retroactively. Anything older than 7 days is locked and cannot be repaired, no matter how much extra training you do later.</Text>
       </Card>
     </Screen>
   );
@@ -108,26 +108,19 @@ export default function ComebackScreen() {
 function sameDate(a: Date, b: Date) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
 function addDays(date: Date, amount: number) { const copy = new Date(date); copy.setDate(copy.getDate() + amount); copy.setHours(12, 0, 0, 0); return copy; }
-function startOfWeek(date: Date) { const copy = new Date(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); copy.setHours(12, 0, 0, 0); return copy; }
-function endOfWeek(date: Date) { return addDays(startOfWeek(date), 6); }
 function rawCreditForDate(logs: ActivityLog[], date: Date) { return logs.filter((log) => sameDate(new Date(log.performed_at), date)).reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0); }
 function normalCreditForDate(logs: ActivityLog[], date: Date) { return Math.min(DAILY_TARGET, rawCreditForDate(logs, date)); }
 function extraCreditForDate(logs: ActivityLog[], date: Date) { return Math.max(0, rawCreditForDate(logs, date) - DAILY_TARGET); }
 
-function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
-  const monday = startOfWeek(weekDate);
-  const sunday = endOfWeek(weekDate);
-  const currentWeek = dateKey(startOfWeek(today)) === dateKey(monday);
-  const cutoff = currentWeek ? today : sunday;
+function getRollingComeback(logs: ActivityLog[], today: Date) {
+  const windowStart = addDays(today, -6);
   const deficits: { key: string; remaining: number }[] = [];
   const recoveredByDate: Record<string, number> = {};
   let totalExtra = 0;
   let recovered = 0;
 
   for (let index = 0; index < 7; index += 1) {
-    const date = addDays(monday, index);
-    if (dateKey(date) > dateKey(cutoff)) break;
-
+    const date = addDays(windowStart, index);
     const normal = normalCreditForDate(logs, date);
     const missing = Math.max(0, DAILY_TARGET - normal);
     const extra = extraCreditForDate(logs, date);
@@ -148,7 +141,6 @@ function getWeeklyComeback(logs: ActivityLog[], weekDate: Date, today: Date) {
   }
 
   return {
-    locked: dateKey(sunday) < dateKey(today),
     recoveredByDate,
     totalExtra,
     recovered,
