@@ -1,59 +1,137 @@
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
+import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
+import { ProgressRing } from '@/components/ProgressRing';
 import { Screen } from '@/components/Screen';
+import { getActivityLogs } from '@/features/activities/activity.service';
 import { useAuth } from '@/providers/AuthProvider';
 import { colours } from '@/theme/colours';
 
 export default function HomeScreen() {
   const { session, signOut } = useAuth();
+  const [todayMinutes, setTodayMinutes] = useState(0);
+  const [todayActivities, setTodayActivities] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      async function loadToday() {
+        try {
+          const logs = await getActivityLogs();
+          const now = new Date();
+          const todaysLogs = logs.filter((log) => {
+            const performed = new Date(log.performed_at);
+            return performed.getFullYear() === now.getFullYear()
+              && performed.getMonth() === now.getMonth()
+              && performed.getDate() === now.getDate();
+          });
+
+          if (active) {
+            setTodayMinutes(todaysLogs.reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0));
+            setTodayActivities(todaysLogs.length);
+          }
+        } catch {
+          if (active) {
+            setTodayMinutes(0);
+            setTodayActivities(0);
+          }
+        }
+      }
+
+      loadToday();
+      return () => { active = false; };
+    }, []),
+  );
 
   return (
-    <Screen>
-      <Brand />
-      <Text style={styles.title}>Today</Text>
-      <Text style={styles.subtitle}>Log training and keep your history in sync.</Text>
+    <Screen contentStyle={styles.screen}>
+      <View style={styles.header}>
+        <Brand />
+        <Pressable onPress={signOut} hitSlop={12}>
+          <Text style={styles.logout}>LOG OUT</Text>
+        </Pressable>
+      </View>
 
-      <Card>
-        <Text style={styles.label}>SIGNED IN AS</Text>
-        <Text style={styles.value}>{session?.user.email}</Text>
+      <View style={styles.titleRow}>
+        <View>
+          <Text style={styles.eyebrow}>YOUR TRAINING</Text>
+          <Text style={styles.title}>TODAY</Text>
+        </View>
+        <View style={styles.streakPill}>
+          <Text style={styles.streakIcon}>🔥</Text>
+          <Text style={styles.streakText}>0 DAY FIRE</Text>
+        </View>
+      </View>
+
+      <Card style={styles.heroCard}>
+        <Text style={styles.heroLabel}>DAILY ACTIVITY</Text>
+        <ProgressRing minutes={todayMinutes} target={30} />
+        <Text style={styles.heroCopy}>
+          {todayMinutes >= 30 ? 'Daily target hit. Nice work.' : `${Math.max(0, 30 - Math.round(todayMinutes))} minutes to hit today’s target.`}
+        </Text>
       </Card>
 
-      <View style={styles.spacer} />
-
-      <Pressable onPress={() => router.push('/(app)/add')}>
-        <Card>
-          <Text style={styles.section}>+ ADD ACTIVITY</Text>
-          <Text style={styles.body}>Save a completed training session to Supabase.</Text>
+      <View style={styles.statsRow}>
+        <Card style={styles.statCard}>
+          <Text style={styles.statLabel}>ACTIVITIES</Text>
+          <Text style={styles.statValue}>{todayActivities}</Text>
+          <Text style={styles.statFoot}>TODAY</Text>
         </Card>
-      </Pressable>
-
-      <View style={styles.spacer} />
-
-      <Pressable onPress={() => router.push('/(app)/history')}>
-        <Card>
-          <Text style={styles.section}>HISTORY</Text>
-          <Text style={styles.body}>View your saved activity logs.</Text>
+        <Card style={styles.statCard}>
+          <Text style={styles.statLabel}>CREDIT</Text>
+          <Text style={styles.statValue}>{Math.round(todayMinutes)}</Text>
+          <Text style={styles.statFoot}>MINUTES</Text>
         </Card>
+      </View>
+
+      <Pressable style={styles.primaryAction} onPress={() => router.push('/(app)/add')}>
+        <View>
+          <Text style={styles.actionEyebrow}>LOG TRAINING</Text>
+          <Text style={styles.actionTitle}>ADD ACTIVITY</Text>
+        </View>
+        <Text style={styles.actionArrow}>＋</Text>
       </Pressable>
 
-      <Pressable style={styles.signOut} onPress={signOut}>
-        <Text style={styles.signOutText}>LOG OUT</Text>
+      <Pressable style={styles.historyLink} onPress={() => router.push('/(app)/history')}>
+        <Text style={styles.historyText}>VIEW ACTIVITY HISTORY</Text>
+        <Text style={styles.historyArrow}>›</Text>
       </Pressable>
+
+      <Text style={styles.signedIn}>SIGNED IN AS {session?.user.email?.toUpperCase()}</Text>
+      <BottomNav active="today" />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { color: colours.white, fontSize: 30, fontWeight: '900', marginTop: 28 },
-  subtitle: { color: colours.muted, marginTop: 4, marginBottom: 18 },
-  label: { color: colours.muted, fontSize: 8, fontWeight: '900' },
-  value: { color: colours.white, fontSize: 16, fontWeight: '800', marginTop: 5 },
-  section: { color: colours.gold, fontSize: 11, fontWeight: '900' },
-  body: { color: colours.white, fontSize: 12, lineHeight: 18, marginTop: 6 },
-  spacer: { height: 12 },
-  signOut: { alignItems: 'center', padding: 18 },
-  signOutText: { color: colours.muted, fontSize: 9, fontWeight: '900' },
+  screen: { paddingBottom: 14 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  logout: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 28, marginBottom: 14 },
+  eyebrow: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.8 },
+  title: { color: colours.white, fontSize: 34, fontWeight: '900', letterSpacing: 0.5, marginTop: 1 },
+  streakPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.border, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 11, marginBottom: 5 },
+  streakIcon: { fontSize: 13, marginRight: 5 },
+  streakText: { color: colours.white, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+  heroCard: { alignItems: 'center', paddingTop: 16, paddingBottom: 18 },
+  heroLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.8 },
+  heroCopy: { color: colours.muted, fontSize: 11, fontWeight: '700', marginTop: 2 },
+  statsRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  statCard: { flex: 1, minHeight: 92 },
+  statLabel: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 },
+  statValue: { color: colours.white, fontSize: 28, fontWeight: '900', marginTop: 5 },
+  statFoot: { color: colours.gold, fontSize: 7, fontWeight: '900', letterSpacing: 1.2, marginTop: 1 },
+  primaryAction: { backgroundColor: colours.gold, borderRadius: 14, marginTop: 12, paddingHorizontal: 18, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  actionEyebrow: { color: '#5C4510', fontSize: 7, fontWeight: '900', letterSpacing: 1.5 },
+  actionTitle: { color: colours.background, fontSize: 17, fontWeight: '900', marginTop: 2 },
+  actionArrow: { color: colours.background, fontSize: 31, fontWeight: '500' },
+  historyLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 4 },
+  historyText: { color: colours.white, fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  historyArrow: { color: colours.gold, fontSize: 24, lineHeight: 24 },
+  signedIn: { color: colours.muted, fontSize: 7, fontWeight: '800', letterSpacing: 0.8, textAlign: 'center', marginTop: 3 },
 });
