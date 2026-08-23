@@ -9,7 +9,8 @@ import { CardAction } from '@/components/CardAction';
 import { PrimaryActionButton } from '@/components/PrimaryActionButton';
 import { ProgressRing } from '@/components/ProgressRing';
 import { Screen } from '@/components/Screen';
-import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
+import { ActivityLog, getActivityLogs, removeActivityLog } from '@/features/activities/activity.service';
+import { getLinkedSchool, isSchoolTermTime, SchoolCalendarEntry } from '@/features/schools/school.service';
 import { supabase } from '@/lib/supabase';
 import { colours } from '@/theme/colours';
 
@@ -27,17 +28,20 @@ type ProteinProfile = { enabled: boolean; goal: string | null; override: number 
 export default function HomeScreen() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [protein, setProtein] = useState<ProteinProfile>({ enabled: false, goal: null, override: null, weight: null, dob: null });
+  const [schoolCalendar, setSchoolCalendar] = useState<SchoolCalendarEntry[]>([]);
   const today = useMemo(() => new Date(), []);
 
   useFocusEffect(useCallback(() => {
     let live = true;
     async function load() {
-      const [items, userData] = await Promise.all([
+      const [items, userData, school] = await Promise.all([
         getActivityLogs().catch(() => [] as ActivityLog[]),
         supabase ? supabase.auth.getUser() : Promise.resolve({ data: { user: null }, error: null }),
+        getLinkedSchool().catch(() => ({ school: null, calendar: [] as SchoolCalendarEntry[] })),
       ]);
       if (!live) return;
       setLogs(items);
+      setSchoolCalendar(school.calendar);
       if (!supabase || !userData.data.user) return;
       const { data } = await supabase.from('profiles').select('date_of_birth,protein_enabled,protein_goal,protein_multiplier_override,current_weight_kg').eq('id', userData.data.user.id).single();
       if (!live || !data) return;
@@ -46,6 +50,15 @@ export default function HomeScreen() {
     load().catch(() => { if (live) setLogs([]); });
     return () => { live = false; };
   }, []));
+
+  async function removeLog(id: string) {
+    try {
+      await removeActivityLog(id);
+      setLogs((items) => items.filter((item) => item.id !== id));
+    } catch {
+      // Keep the row visible when deletion fails so the user can retry.
+    }
+  }
 
   const todaysLogs = logs.filter((log) => sameDate(new Date(log.performed_at), today));
   const rawTodayCredit = rawCreditForDate(logs, today);
@@ -58,18 +71,20 @@ export default function HomeScreen() {
   const rewardXP = FIRE_XP[priorFireScore];
   const multiplier = FIRE_MULTIPLIER[priorFireScore];
   const comeback = getRollingComeback(logs, today);
+  const comebackMinutes = comeback.totalExtra * COMEBACK_RATE;
   const complete = todayCredit >= DAILY_TARGET;
   const proteinMultiplier = getProteinMultiplier(protein, today);
   const proteinTarget = protein.weight && protein.goal && proteinMultiplier ? Math.round(protein.weight * proteinMultiplier) : null;
   const proteinGoalTitle = getProteinGoalTitle(protein, today);
   const proteinRoute = !protein.goal ? '/(app)/protein' : !protein.weight ? '/(app)/measurements' : '/(app)/protein-details';
+  const dayType = schoolCalendar.length ? (isSchoolTermTime(schoolCalendar, today) ? 'TERM TIME' : 'HOLIDAY') : 'HOLIDAY';
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Brand />
         <Text style={styles.title}>Today</Text>
-        <Text style={styles.subtitle}>{today.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()}  •  HOLIDAY</Text>
+        <Text style={styles.subtitle}>{today.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()}  •  {dayType}</Text>
 
         <Pressable onPress={() => router.push('/(app)/levels')}>
           <Card style={styles.levelCard}>
@@ -89,12 +104,12 @@ export default function HomeScreen() {
 
         <Card style={styles.activityCard}>
           <Text style={styles.sectionTitle}>TODAY'S ACTIVITY</Text>
-          {todaysLogs.length === 0 ? <View style={styles.empty}><Text style={styles.emptyEmoji}>💤</Text><Text style={styles.emptyText}>Nothing logged yet</Text></View> : todaysLogs.map((log) => <View key={log.id} style={styles.loggedRow}><Text style={styles.loggedEmoji}>{log.activity_icon || '⚡'}</Text><View style={styles.flex}><Text style={styles.loggedTitle}>{log.activity_name}</Text><Text style={styles.loggedMeta}>{log.duration_minutes} min{log.amount !== null && log.unit ? ` • ${log.amount} ${log.unit}` : ''}</Text></View></View>)}
+          {todaysLogs.length === 0 ? <View style={styles.empty}><Text style={styles.emptyEmoji}>💤</Text><Text style={styles.emptyText}>Nothing logged yet</Text></View> : todaysLogs.map((log) => <View key={log.id} style={styles.loggedRow}><Text style={styles.loggedEmoji}>{log.activity_icon || '⚡'}</Text><View style={styles.flex}><Text style={styles.loggedTitle}>{log.activity_name}</Text><Text style={styles.loggedMeta}>{log.duration_minutes} min{log.amount !== null && log.unit ? ` • ${log.amount} ${log.unit}` : ''}</Text></View><Pressable style={styles.removeButton} onPress={() => removeLog(log.id)}><Text style={styles.removeText}>✕ REMOVE</Text></Pressable></View>)}
           <PrimaryActionButton label="+ ADD TRAINING" onPress={() => router.push('/(app)/add')} style={styles.addTraining} />
         </Card>
 
         <Pressable style={styles.comebackPress} onPress={() => router.push('/(app)/comeback')}>
-          <Card style={styles.comebackCard}><View style={styles.rowBetween}><View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>COMEBACK MINUTES</Text></View><CardAction colour={colours.purple} /></View><Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text></Card>
+          <Card style={styles.comebackCard}><View style={styles.rowBetween}><View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>COMEBACK MINUTES</Text></View><CardAction colour={colours.purple} /></View><Text style={styles.comebackTitle}>{Math.round(comebackMinutes)} comeback minutes</Text></Card>
         </Pressable>
 
         {protein.enabled ? (
@@ -135,9 +150,9 @@ const styles = StyleSheet.create({
   levelCard: { borderColor: colours.gold }, levelTitle: { color: colours.white, fontSize: 23, fontWeight: '900', marginTop: 2 }, activeXp: { color: colours.white, fontSize: 12, fontWeight: '800', marginTop: 5 }, nextLevel: { color: colours.gold, fontSize: 10, fontWeight: '900', marginTop: 5 }, levelCircle: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center', marginLeft: 10 }, levelNumber: { color: colours.gold, fontSize: 23, fontWeight: '900' },
   progressTrack: { height: 8, borderRadius: 4, backgroundColor: colours.card2, overflow: 'hidden', marginTop: 11 }, progressFill: { height: '100%', backgroundColor: colours.gold }, targetCard: { marginTop: 12, borderColor: colours.blue }, targetValue: { color: colours.white, fontSize: 28, fontWeight: '900', marginTop: 5 }, targetValueComplete: { color: colours.green },
   rewardPanel: { backgroundColor: colours.card2, borderRadius: 11, padding: 11, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 13 }, rewardLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' }, rewardXp: { color: colours.gold, fontSize: 21, fontWeight: '900', marginTop: 2 }, rewardRight: { alignItems: 'flex-end' }, multiplier: { color: colours.orange, fontSize: 16, fontWeight: '900' }, rewardSub: { color: colours.muted, fontSize: 7 },
-  fireSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14 }, fireLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' }, fireRow: { flexDirection: 'row', marginTop: 3 }, fireWrap: { width: 28, height: 31, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }, fireToday: { borderWidth: 2, borderColor: colours.gold, transform: [{ translateX: 2 }] }, fireEmoji: { fontSize: 22 }, fireOff: { opacity: 0.18 }, fireCount: { color: colours.orange, fontSize: 27, fontWeight: '900', marginBottom: 2 },
+  fireSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14 }, fireLabel: { color: colours.muted, fontSize: 8, fontWeight: '900' }, fireRow: { flexDirection: 'row', marginTop: 3 }, fireWrap: { width: 28, height: 31, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }, fireToday: { borderWidth: 2, borderColor: colours.gold, transform: [{ translateX: 3 }] }, fireEmoji: { fontSize: 22 }, fireOff: { opacity: 0.18 }, fireCount: { color: colours.orange, fontSize: 27, fontWeight: '900', marginBottom: 2 },
   capacityRow: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colours.border, paddingTop: 11, marginTop: 12 }, capacityLabel: { color: colours.muted, fontSize: 7, fontWeight: '900' }, capacityValue: { color: colours.white, fontSize: 12, fontWeight: '900', marginTop: 3 },
-  activityCard: { marginTop: 12 }, empty: { alignItems: 'center', paddingVertical: 18 }, emptyEmoji: { fontSize: 27 }, emptyText: { color: colours.white, fontSize: 11, fontWeight: '900', marginTop: 5 }, loggedRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: colours.border, marginTop: 8, paddingTop: 8 }, loggedEmoji: { width: 38, fontSize: 21 }, loggedTitle: { color: colours.white, fontSize: 13, fontWeight: '900' }, loggedMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 }, addTraining: { marginTop: 11 },
+  activityCard: { marginTop: 12 }, empty: { alignItems: 'center', paddingVertical: 18 }, emptyEmoji: { fontSize: 27 }, emptyText: { color: colours.white, fontSize: 11, fontWeight: '900', marginTop: 5 }, loggedRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: colours.border, marginTop: 8, paddingTop: 8 }, loggedEmoji: { width: 38, fontSize: 21 }, loggedTitle: { color: colours.white, fontSize: 13, fontWeight: '900' }, loggedMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 }, removeButton: { minHeight: 40, borderRadius: 9, borderWidth: 1, borderColor: colours.red, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }, removeText: { color: colours.red, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }, addTraining: { marginTop: 11 },
   comebackPress: { marginTop: 12 }, comebackCard: { borderColor: colours.purple, backgroundColor: colours.card2 }, inline: { flexDirection: 'row', alignItems: 'center' }, comebackIcon: { color: colours.purple, fontSize: 20, fontWeight: '900', marginRight: 7 }, comebackLabel: { color: colours.purple, fontSize: 9, fontWeight: '900' }, comebackTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 7 },
   proteinPress: { marginTop: 12 }, proteinCard: { borderColor: colours.gold, backgroundColor: colours.card2 }, proteinLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 }, proteinValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 }, proteinTarget: { color: colours.gold, fontSize: 12, fontWeight: '900', marginTop: 5 }, proteinMeta: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 4, paddingRight: 8 },
 });
