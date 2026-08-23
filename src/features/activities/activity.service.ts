@@ -16,6 +16,7 @@ export type Activity = {
 
 export type ActivityLog = {
   id: string;
+  activity_id: string | null;
   activity_name: string;
   activity_icon: string | null;
   training_type: string;
@@ -121,9 +122,28 @@ export async function addSimpleActivityLog(input: NewSimpleActivityLog) {
 
 export async function getActivityLogs(): Promise<ActivityLog[]> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase.from('activity_logs').select('id, activity_name, activity_icon, training_type, amount, unit, duration_minutes, credit_minutes, performed_at').order('performed_at', { ascending: false });
+  const { data, error } = await supabase.from('activity_logs').select('id, activity_id, activity_name, activity_icon, training_type, amount, unit, duration_minutes, credit_minutes, performed_at').order('performed_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+export async function getActivityLog(logId: string): Promise<ActivityLog> {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase.from('activity_logs').select('id, activity_id, activity_name, activity_icon, training_type, amount, unit, duration_minutes, credit_minutes, performed_at').eq('id', logId).single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateActivityLog(logId: string, activity: Activity | null, durationMinutes: number, amount: number) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const credit = activity ? calculateActivityCredit(activity, amount, durationMinutes) : durationMinutes;
+  const { error } = await supabase.from('activity_logs').update({
+    duration_minutes: durationMinutes,
+    credit_minutes: credit,
+    amount: activity?.measure_type === 'time' || !activity ? durationMinutes : amount,
+    unit: activity?.measure_type === 'time' || !activity ? 'min' : activity.unit,
+  }).eq('id', logId);
+  if (error) throw error;
 }
 
 export async function removeActivityLog(logId: string) {
