@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
@@ -11,6 +11,7 @@ import { acceptTeamCode, createTeam, createTeamCode, getMyTeams, leaveTeam, Team
 import { colours } from '@/theme/colours';
 
 export default function TeamsScreen() {
+  const codeInputRef = useRef<TextInput>(null);
   const [teams, setTeams] = useState<TeamSummary[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [newName, setNewName] = useState('');
@@ -106,10 +107,11 @@ export default function TeamsScreen() {
 
     <Card style={styles.card}>
       <Text style={styles.section}>ENTER TEAM CODE</Text><Text style={styles.body}>The sixth digit joins the team automatically.</Text>
-      <TextInput style={styles.hiddenInput} value={entry} onChangeText={changeEntry} keyboardType="number-pad" maxLength={6} autoComplete="one-time-code" />
-      <Pressable style={styles.codeSlots} onPress={() => {}}>
-        {[0,1,2,3,4,5].map((index) => <View key={index} style={[styles.slot, entry.length === index && styles.slotActive]}><Text style={styles.slotText}>{entry[index] || '—'}</Text></View>)}
+      <TextInput ref={codeInputRef} style={styles.hiddenInput} value={entry} onChangeText={changeEntry} keyboardType="number-pad" maxLength={6} autoComplete="one-time-code" />
+      <Pressable style={styles.codeSlots} onPress={() => codeInputRef.current?.focus()}>
+        {[0,1,2].map((index) => <View key={index} style={[styles.slot, entry.length === index && styles.slotActive]}><Text style={styles.slotText}>{entry[index] || '—'}</Text></View>)}
         <Text style={styles.hyphen}>-</Text>
+        {[3,4,5].map((index) => <View key={index} style={[styles.slot, entry.length === index && styles.slotActive]}><Text style={styles.slotText}>{entry[index] || '—'}</Text></View>)}
       </Pressable>
       <Text style={styles.inputHint}>Tap the code area, then type six digits.</Text>
     </Card>
@@ -120,5 +122,5 @@ export default function TeamsScreen() {
 function formatCountdown(seconds:number){const min=Math.floor(seconds/60);const sec=String(seconds%60).padStart(2,'0');return `${min}:${sec}`}
 
 const styles=StyleSheet.create({
-  title:{color:colours.white,fontSize:30,fontWeight:'900'},subtitle:{color:colours.muted,fontSize:11,lineHeight:16,marginTop:5,marginBottom:14},pills:{gap:7,paddingBottom:10,paddingRight:8},pill:{minHeight:32,borderRadius:16,borderWidth:1,borderColor:colours.border,backgroundColor:colours.card2,paddingHorizontal:13,alignItems:'center',justifyContent:'center'},pillActive:{borderColor:colours.gold},pillText:{color:colours.muted,fontSize:8,fontWeight:'900'},pillTextActive:{color:colours.gold},card:{marginBottom:10},section:{color:colours.gold,fontSize:9,fontWeight:'900',letterSpacing:1},body:{color:colours.muted,fontSize:10,lineHeight:15,marginTop:5},row:{flexDirection:'row',gap:8,marginTop:10},nameInput:{flex:1,minHeight:44,borderRadius:10,backgroundColor:colours.card2,color:colours.white,paddingHorizontal:12},inlineButton:{minWidth:84,borderRadius:10,backgroundColor:colours.gold,alignItems:'center',justifyContent:'center'},inlineText:{color:colours.background,fontSize:9,fontWeight:'900'},disabled:{opacity:.4},code:{color:colours.white,fontSize:38,lineHeight:48,fontWeight:'900',letterSpacing:3,textAlign:'center',marginTop:13},expiry:{color:colours.gold,fontSize:8,fontWeight:'900',textAlign:'center'},expired:{color:colours.red,fontSize:9,fontWeight:'900',textAlign:'center',marginTop:12},actionGap:{marginTop:13},removeButton:{minHeight:38,borderWidth:1,borderColor:colours.red,borderRadius:9,alignItems:'center',justifyContent:'center',marginTop:9},removeText:{color:colours.red,fontSize:9,fontWeight:'900'},hiddenInput:{position:'absolute',opacity:0,width:1,height:1},codeSlots:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,marginTop:14,position:'relative'},slot:{width:38,height:48,borderRadius:8,borderWidth:1,borderColor:colours.border,backgroundColor:colours.card2,alignItems:'center',justifyContent:'center'},slotActive:{borderColor:colours.gold},slotText:{color:colours.white,fontSize:20,fontWeight:'900'},hyphen:{position:'absolute',color:colours.gold,fontSize:22,fontWeight:'900',left:'48%',top:10},inputHint:{color:colours.muted,fontSize:8,textAlign:'center',marginTop:8},message:{color:colours.gold,fontSize:9,lineHeight:14,marginVertical:4}
+  title:{color:colours.white,fontSize:30,fontWeight:'900'},subtitle:{color:colours.muted,fontSize:11,lineHeight:16,marginTop:5,marginBottom:14},pills:{gap:7,paddingBottom:10,paddingRight:8},pill:{minHeight:32,borderRadius:16,borderWidth:1,borderColor:colours.border,backgroundColor:colours.card2,paddingHorizontal:13,alignItems:'center',justifyContent:'center'},pillActive:{borderColor:colours.gold},pillText:{color:colours.muted,fontSize:8,fontWeight:'900'},pillTextActive:{color:colours.gold},card:{marginBottom:10},section:{color:colours.gold,fontSize:9,fontWeight:'900',letterSpacing:1},body:{color:colours.muted,fontSize:10,lineHeight:15,marginTop:5},row:{flexDirection:'row',gap:8,marginTop:10},nameInput:{flex:1,minHeight:44,borderRadius:10,backgroundColor:colours.card2,color:colours.white,paddingHorizontal:12},inlineButton:{minWidth:84,borderRadius:10,backgroundColor:colours.gold,alignItems:'center',justifyContent:'center'},inlineText:{color:colours.background,fontSize:9,fontWeight:'900'},disabled:{opacity:.4},code:{color:colours.white,fontSize:38,lineHeight:48,fontWeight:'900',letterSpacing:3,textAlign:'center',marginTop:13},expiry:{color:colours.gold,fontSize:8,fontWeight:'900',textAlign:'center'},expired:{color:colours.red,fontSize:9,fontWeight:'900',textAlign:'center',marginTop:12},actionGap:{marginTop:13},removeButton:{minHeight:38,borderWidth:1,borderColor:colours.red,borderRadius:9,alignItems:'center',justifyContent:'center',marginTop:9},removeText:{color:colours.red,fontSize:9,fontWeight:'900'},hiddenInput:{position:'absolute',opacity:0,width:1,height:1},codeSlots:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,marginTop:14},slot:{width:38,height:48,borderRadius:8,borderWidth:1,borderColor:colours.border,backgroundColor:colours.card2,alignItems:'center',justifyContent:'center'},slotActive:{borderColor:colours.gold},slotText:{color:colours.white,fontSize:20,fontWeight:'900'},hyphen:{color:colours.gold,fontSize:22,fontWeight:'900',marginHorizontal:2},inputHint:{color:colours.muted,fontSize:8,textAlign:'center',marginTop:8},message:{color:colours.gold,fontSize:9,lineHeight:14,marginVertical:4}
 });
