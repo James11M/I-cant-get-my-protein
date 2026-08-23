@@ -6,6 +6,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
 import { CardAction } from '@/components/CardAction';
+import { PrimaryActionButton } from '@/components/PrimaryActionButton';
 import { ProgressRing } from '@/components/ProgressRing';
 import { Screen } from '@/components/Screen';
 import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
@@ -101,24 +102,22 @@ export default function HomeScreen() {
         {protein.enabled ? (
           <Pressable style={styles.proteinPress} onPress={() => router.push(proteinRoute)}>
             <Card style={styles.proteinCard}>
-              <View style={styles.rowBetween}>
-                <View style={styles.flex}>
-                  <Text style={styles.proteinLabel}>HIT MY PROTEIN</Text>
-                  {proteinTarget && proteinGoalTitle ? (
-                    <>
-                      <Text style={styles.levelTitle}>{proteinGoalTitle}</Text>
-                      <Text style={styles.proteinTarget}>{proteinTarget}g DAILY TARGET</Text>
-                      <Text style={styles.proteinMeta}>{protein.weight} kg × {proteinMultiplier?.toFixed(1)} g/kg</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : 'ADD YOUR WEIGHT'}</Text>
-                      <Text style={styles.proteinMeta}>{!protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
-                    </>
-                  )}
-                </View>
+              <View style={styles.cardTitleRow}>
+                <Text style={styles.proteinLabel}>HIT MY PROTEIN</Text>
                 <CardAction colour={colours.gold} />
               </View>
+              {proteinTarget && proteinGoalTitle ? (
+                <>
+                  <Text style={styles.levelTitle}>{proteinGoalTitle}</Text>
+                  <Text style={styles.proteinTarget}>{proteinTarget}g DAILY TARGET</Text>
+                  <Text style={styles.proteinMeta}>{protein.weight} kg × {proteinMultiplier?.toFixed(1)} g/kg</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : 'ADD YOUR WEIGHT'}</Text>
+                  <Text style={styles.proteinMeta}>{!protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
+                </>
+              )}
             </Card>
           </Pressable>
         ) : null}
@@ -170,13 +169,13 @@ export default function HomeScreen() {
         <Card style={styles.activityCard}>
           <Text style={styles.sectionTitle}>TODAY'S ACTIVITY</Text>
           {todaysLogs.length === 0 ? <View style={styles.empty}><Text style={styles.emptyEmoji}>💤</Text><Text style={styles.emptyText}>Nothing logged yet</Text></View> : todaysLogs.map((log) => <View key={log.id} style={styles.loggedRow}><Text style={styles.loggedEmoji}>{log.activity_icon || '⚡'}</Text><View style={styles.flex}><Text style={styles.loggedTitle}>{log.activity_name}</Text><Text style={styles.loggedMeta}>{log.duration_minutes} min{log.amount !== null && log.unit ? ` • ${log.amount} ${log.unit}` : ''}</Text></View></View>)}
-          <Pressable style={styles.primary} onPress={() => router.push('/(app)/add')}><Text style={styles.primaryText}>+ ADD TRAINING</Text></Pressable>
+          <PrimaryActionButton label="+ ADD TRAINING" onPress={() => router.push('/(app)/add')} style={styles.addTraining} />
         </Card>
 
         <Pressable style={styles.comebackPress} onPress={() => router.push('/(app)/comeback')}>
           <Card style={styles.comebackCard}>
             <View style={styles.rowBetween}>
-              <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View>
+              <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>COMEBACK MINUTES</Text></View>
               <CardAction colour={colours.purple} />
             </View>
             <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
@@ -276,6 +275,7 @@ const styles = StyleSheet.create({
   title: { color: colours.white, fontSize: 29, fontWeight: '900', marginTop: 18, marginBottom: 8 },
   subtitle: { color: colours.muted, fontSize: 11, lineHeight: 17, marginBottom: 14 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
   flex: { flex: 1 },
   goldLabel: { color: colours.gold, fontSize: 9, fontWeight: '900' },
   sectionTitle: { color: colours.white, fontSize: 11, fontWeight: '900', letterSpacing: 0.4 },
@@ -331,8 +331,7 @@ const styles = StyleSheet.create({
   loggedEmoji: { width: 38, fontSize: 21 },
   loggedTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
   loggedMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
-  primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 50, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
-  primaryText: { color: colours.background, fontSize: 11, fontWeight: '900' },
+  addTraining: { marginTop: 11 },
 
   comebackPress: { marginTop: 12 },
   comebackCard: { borderColor: colours.purple, backgroundColor: colours.card2 },
