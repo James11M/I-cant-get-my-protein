@@ -71,6 +71,7 @@ export default function HomeScreen() {
   const complete = todayCredit >= DAILY_TARGET;
   const proteinMultiplier = getProteinMultiplier(protein, today);
   const proteinTarget = protein.weight && protein.goal && proteinMultiplier ? Math.round(protein.weight * proteinMultiplier) : null;
+  const proteinGoalTitle = getProteinGoalTitle(protein, today);
   const proteinRoute = !protein.weight && protein.goal ? '/(app)/measurements' : '/(app)/protein';
 
   return (
@@ -102,8 +103,18 @@ export default function HomeScreen() {
               <View style={styles.rowBetween}>
                 <View style={styles.flex}>
                   <Text style={styles.proteinLabel}>HIT MY PROTEIN</Text>
-                  <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : !protein.weight ? 'ADD YOUR WEIGHT' : `${proteinTarget}g`}</Text>
-                  <Text style={styles.proteinMeta}>{proteinTarget ? `${protein.weight} kg × ${proteinMultiplier?.toFixed(1)} g/kg • daily target` : !protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
+                  {proteinTarget && proteinGoalTitle ? (
+                    <>
+                      <Text style={styles.levelTitle}>{proteinGoalTitle}</Text>
+                      <Text style={styles.proteinTarget}>{proteinTarget}g DAILY TARGET</Text>
+                      <Text style={styles.proteinMeta}>{protein.weight} kg × {proteinMultiplier?.toFixed(1)} g/kg</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : 'ADD YOUR WEIGHT'}</Text>
+                      <Text style={styles.proteinMeta}>{!protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
+                    </>
+                  )}
                 </View>
                 <View style={styles.proteinViewButton}><Text style={styles.proteinViewText}>VIEW →</Text></View>
               </View>
@@ -247,6 +258,15 @@ function getProteinMultiplier(profile: ProteinProfile, today: Date) {
   if (profile.goal === 'lose_fat_keep_muscle') return under18 ? null : 1.8;
   return null;
 }
+function getProteinGoalTitle(profile: ProteinProfile, today: Date) {
+  if (!profile.goal) return null;
+  const under18 = (ageFromIsoDate(profile.dob, today) ?? 18) < 18;
+  if (profile.goal === 'stay_active') return 'Stay Active';
+  if (profile.goal === 'training_recovery') return 'Training & Recovery';
+  if (profile.goal === 'build_muscle') return under18 ? 'Build Strength & Muscle' : 'Build Muscle';
+  if (profile.goal === 'lose_fat_keep_muscle') return 'Lose Fat, Keep Muscle';
+  return null;
+}
 
 const styles = StyleSheet.create({
   screen: { paddingBottom: 6 },
@@ -272,6 +292,7 @@ const styles = StyleSheet.create({
   proteinCard: { borderColor: colours.gold, backgroundColor: colours.card2 },
   proteinLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
   proteinValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 },
+  proteinTarget: { color: colours.gold, fontSize: 12, fontWeight: '900', marginTop: 5 },
   proteinMeta: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 4, paddingRight: 8 },
   proteinViewButton: { minHeight: 32, minWidth: 68, borderWidth: 1, borderColor: colours.gold, borderRadius: 9, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colours.card, marginLeft: 10 },
   proteinViewText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
