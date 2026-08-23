@@ -27,7 +27,7 @@ export default function ComebackScreen() {
 
   const comeback = getRollingComeback(logs, today);
   const comebackMinutes = comeback.totalExtra * COMEBACK_RATE;
-  const rollingDays = Array.from({ length: 7 }, (_, index) => addDays(today, index - 6));
+  const rollingDays = Array.from({ length: 7 }, (_, index) => addDays(today, -index));
 
   return (
     <Screen>
@@ -49,18 +49,10 @@ export default function ComebackScreen() {
           const isToday = sameDate(date, today);
 
           return (
-            <Card
-              key={key}
-              style={[
-                styles.dayCard,
-                doneNormally && styles.normalDone,
-                (doneWithComeback || partialComeback) && styles.comebackDay,
-                isToday && styles.todayCard,
-              ]}
-            >
+            <Card key={key} style={[styles.dayCard, doneNormally && styles.normalDone, (doneWithComeback || partialComeback) && styles.comebackDay, isToday && styles.todayCard]}>
               <View style={styles.dayHeading}>
                 <View>
-                  <Text style={styles.dayName}>{DAYS[date.getDay()]} {date.getDate()}</Text>
+                  <Text style={styles.dayName}>{DAYS[date.getDay()]} {date.getDate()}{isToday ? ' • TODAY' : ''}</Text>
                   <Text style={styles.dayMeta}>{Math.round(normal)} normal{recovered > 0 ? ` + ${Math.round(recovered)} comeback` : ''} min</Text>
                 </View>
                 <View style={styles.fireArea}>
@@ -77,37 +69,20 @@ export default function ComebackScreen() {
 
       <Card style={styles.howCard}>
         <Pressable style={styles.howHeader} onPress={() => setShowHowItWorks((value) => !value)}>
-          <Text style={styles.purpleLabel}>HOW IT WORKS</Text>
-          <ExpandChevron expanded={showHowItWorks} colour={colours.purple} />
+          <Text style={styles.howLabel}>HOW IT WORKS</Text>
+          <ExpandChevron expanded={showHowItWorks} colour={colours.white} />
         </Pressable>
 
         {showHowItWorks ? (
           <View style={styles.howContent}>
             <Text style={styles.body}>Your first {DAILY_TARGET} credit minutes cover today. Anything above that becomes comeback credit at {Math.round(COMEBACK_RATE * 100)}% and is applied backwards, starting with yesterday. Once a day falls outside the last 7 days it locks and cannot be repaired.</Text>
             <Text style={styles.formula}>POC example: 260 excess min × 50% = 130 comeback min</Text>
-
             <View style={styles.summaryRow}>
-              <View style={styles.summaryBlock}>
-                <Text style={styles.summaryLabel}>EXCESS • LAST 7D</Text>
-                <Text style={styles.summaryValue}>{Math.round(comeback.totalExtra)}</Text>
-                <Text style={styles.summaryUnit}>raw min</Text>
-              </View>
-              <View style={styles.summaryBlock}>
-                <Text style={styles.summaryLabel}>COMEBACK RATE</Text>
-                <Text style={styles.summaryValue}>{Math.round(COMEBACK_RATE * 100)}%</Text>
-                <Text style={styles.summaryUnit}>setting</Text>
-              </View>
-              <View style={styles.summaryBlock}>
-                <Text style={styles.summaryLabel}>COMEBACK MIN</Text>
-                <Text style={[styles.summaryValue, styles.purple]}>{Math.round(comebackMinutes)}</Text>
-                <Text style={styles.summaryUnit}>generated</Text>
-              </View>
+              <View style={styles.summaryBlock}><Text style={styles.summaryLabel}>EXCESS • LAST 7D</Text><Text style={styles.summaryValue}>{Math.round(comeback.totalExtra)}</Text><Text style={styles.summaryUnit}>raw min</Text></View>
+              <View style={styles.summaryBlock}><Text style={styles.summaryLabel}>COMEBACK RATE</Text><Text style={styles.summaryValue}>{Math.round(COMEBACK_RATE * 100)}%</Text><Text style={styles.summaryUnit}>setting</Text></View>
+              <View style={styles.summaryBlock}><Text style={styles.summaryLabel}>COMEBACK MIN</Text><Text style={[styles.summaryValue, styles.purple]}>{Math.round(comebackMinutes)}</Text><Text style={styles.summaryUnit}>generated</Text></View>
             </View>
-
-            <View style={styles.consistencyBlock}>
-              <Text style={styles.purpleLabel}>CONSISTENCY</Text>
-              <Text style={styles.body}>A repaired day counts as complete for your fire score from today forward. Comeback never awards XP retroactively. Anything older than 7 days is locked and cannot be repaired, no matter how much extra training you do later.</Text>
-            </View>
+            <View style={styles.consistencyBlock}><Text style={styles.purpleLabel}>CONSISTENCY</Text><Text style={styles.body}>A repaired day counts as complete for your fire score from today forward. Comeback never awards XP retroactively. Anything older than 7 days is locked and cannot be repaired, no matter how much extra training you do later.</Text></View>
           </View>
         ) : null}
       </Card>
@@ -121,14 +96,12 @@ function addDays(date: Date, amount: number) { const copy = new Date(date); copy
 function rawCreditForDate(logs: ActivityLog[], date: Date) { return logs.filter((log) => sameDate(new Date(log.performed_at), date)).reduce((sum, log) => sum + Number(log.credit_minutes || 0), 0); }
 function normalCreditForDate(logs: ActivityLog[], date: Date) { return Math.min(DAILY_TARGET, rawCreditForDate(logs, date)); }
 function extraCreditForDate(logs: ActivityLog[], date: Date) { return Math.max(0, rawCreditForDate(logs, date) - DAILY_TARGET); }
-
 function getRollingComeback(logs: ActivityLog[], today: Date) {
   const windowStart = addDays(today, -6);
   const deficits: { key: string; remaining: number }[] = [];
   const recoveredByDate: Record<string, number> = {};
   let totalExtra = 0;
   let recovered = 0;
-
   for (let index = 0; index < 7; index += 1) {
     const date = addDays(windowStart, index);
     const normal = normalCreditForDate(logs, date);
@@ -136,7 +109,6 @@ function getRollingComeback(logs: ActivityLog[], today: Date) {
     const extra = extraCreditForDate(logs, date);
     totalExtra += extra;
     let available = extra * COMEBACK_RATE;
-
     for (let deficitIndex = deficits.length - 1; deficitIndex >= 0 && available > 0; deficitIndex -= 1) {
       const deficit = deficits[deficitIndex];
       if (deficit.remaining <= 0) continue;
@@ -146,47 +118,24 @@ function getRollingComeback(logs: ActivityLog[], today: Date) {
       recovered += applied;
       recoveredByDate[deficit.key] = (recoveredByDate[deficit.key] || 0) + applied;
     }
-
     if (missing > 0) deficits.push({ key: dateKey(date), remaining: missing });
   }
-
-  return {
-    recoveredByDate,
-    totalExtra,
-    recovered,
-    missing: deficits.reduce((sum, item) => sum + item.remaining, 0),
-  };
+  return { recoveredByDate, totalExtra, recovered, missing: deficits.reduce((sum, item) => sum + item.remaining, 0) };
 }
 
 const styles = StyleSheet.create({
   title: { color: colours.white, fontSize: 30, lineHeight: 34, fontWeight: '900' },
   subtitle: { color: colours.muted, fontSize: 11, lineHeight: 16, marginTop: 5, marginBottom: 14 },
   sectionTitle: { color: colours.white, fontSize: 11, fontWeight: '900', letterSpacing: 0.5, marginBottom: 8 },
-  dayList: { gap: 7 },
-  dayCard: { paddingVertical: 10, paddingHorizontal: 12 },
-  normalDone: { borderColor: colours.green },
-  comebackDay: { borderColor: colours.purple },
-  todayCard: { borderWidth: 2 },
-  dayHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dayName: { color: colours.white, fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
-  dayMeta: { color: colours.muted, fontSize: 8, marginTop: 3 },
-  fireArea: { alignItems: 'center', minWidth: 54 },
-  fire: { fontSize: 24 },
-  fireOff: { opacity: 0.18 },
-  dayTotal: { color: colours.muted, fontSize: 7, fontWeight: '900', marginTop: 1 },
-  partial: { color: colours.purple, fontSize: 8, fontWeight: '800', marginTop: 6 },
-  repaired: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 6 },
-  howCard: { borderColor: colours.purple, marginTop: 14, marginBottom: 10 },
-  howHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  howContent: { borderTopWidth: 1, borderTopColor: colours.border, marginTop: 5, paddingTop: 8 },
-  purpleLabel: { color: colours.purple, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-  body: { color: colours.white, fontSize: 10, lineHeight: 15, marginTop: 6 },
-  formula: { color: colours.purple, fontSize: 9, lineHeight: 14, fontWeight: '900', marginTop: 8 },
-  summaryRow: { flexDirection: 'row', gap: 7, marginTop: 12 },
-  summaryBlock: { flex: 1, minHeight: 82, backgroundColor: colours.card2, borderRadius: 10, padding: 9, justifyContent: 'center' },
-  summaryLabel: { color: colours.muted, fontSize: 7, lineHeight: 10, fontWeight: '900', letterSpacing: 0.6 },
-  summaryValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 },
-  summaryUnit: { color: colours.muted, fontSize: 7, fontWeight: '800', marginTop: 1 },
-  purple: { color: colours.purple },
+  dayList: { gap: 7 }, dayCard: { paddingVertical: 10, paddingHorizontal: 12 }, normalDone: { borderColor: colours.green }, comebackDay: { borderColor: colours.purple }, todayCard: { borderWidth: 2 },
+  dayHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, dayName: { color: colours.white, fontSize: 11, fontWeight: '900', letterSpacing: 0.5 }, dayMeta: { color: colours.muted, fontSize: 8, marginTop: 3 },
+  fireArea: { alignItems: 'center', minWidth: 54 }, fire: { fontSize: 24 }, fireOff: { opacity: 0.18 }, dayTotal: { color: colours.muted, fontSize: 7, fontWeight: '900', marginTop: 1 },
+  partial: { color: colours.purple, fontSize: 8, fontWeight: '800', marginTop: 6 }, repaired: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 6 },
+  howCard: { borderColor: colours.purple, marginTop: 14, marginBottom: 10, paddingTop: 0, overflow: 'hidden' },
+  howHeader: { minHeight: 46, marginHorizontal: -14, paddingHorizontal: 14, backgroundColor: colours.purple, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  howLabel: { color: colours.white, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  howContent: { marginTop: 10 }, purpleLabel: { color: colours.purple, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  body: { color: colours.white, fontSize: 10, lineHeight: 15, marginTop: 6 }, formula: { color: colours.purple, fontSize: 9, lineHeight: 14, fontWeight: '900', marginTop: 8 },
+  summaryRow: { flexDirection: 'row', gap: 7, marginTop: 12 }, summaryBlock: { flex: 1, minHeight: 82, backgroundColor: colours.card2, borderRadius: 10, padding: 9, justifyContent: 'center' }, summaryLabel: { color: colours.muted, fontSize: 7, lineHeight: 10, fontWeight: '900', letterSpacing: 0.6 }, summaryValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 }, summaryUnit: { color: colours.muted, fontSize: 7, fontWeight: '800', marginTop: 1 }, purple: { color: colours.purple },
   consistencyBlock: { borderTopWidth: 1, borderTopColor: colours.border, marginTop: 12, paddingTop: 10 },
 });
