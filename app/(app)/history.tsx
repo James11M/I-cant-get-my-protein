@@ -81,16 +81,38 @@ function WeekView({ logs, today, weekDate, onWeek }: { logs: ActivityLog[]; toda
       const recovered = comeback.recoveredByDate[dateOnly(date)] || 0;
       const credit = Math.min(DAILY_TARGET, raw + recovered);
       const future = dateOnly(date) > dateOnly(today);
+      const isToday = dateOnly(date) === dateOnly(today);
       const complete = credit >= DAILY_TARGET;
       const partial = !future && credit > 0 && !complete;
-      const status = future ? '' : complete ? recovered > 0 && raw < DAILY_TARGET ? 'COMEBACK' : 'COMPLETE' : partial ? 'PARTIAL' : 'MISSED';
-      return <Card key={date.toISOString()} style={[styles.dayCard, complete && styles.completeCard, partial && styles.partialCard, !future && !complete && !partial && styles.missedCard, recovered > 0 && styles.comebackCard]}>
+      const comebackComplete = complete && recovered > 0 && raw < DAILY_TARGET;
+      const status = future ? '' : isToday && !complete ? 'INCOMPLETE' : complete ? comebackComplete ? 'COMEBACK' : 'COMPLETE' : partial ? 'PARTIAL' : 'MISSED';
+      const todayIncomplete = isToday && !complete;
+      const todayComplete = isToday && complete;
+      const darkTodayText = todayIncomplete;
+      return <Card key={date.toISOString()} style={[
+        styles.dayCard,
+        !isToday && complete && styles.completeCard,
+        !isToday && partial && styles.partialCard,
+        !future && !isToday && !complete && !partial && styles.missedCard,
+        !isToday && recovered > 0 && styles.comebackCard,
+        todayIncomplete && styles.todayIncompleteCard,
+        todayComplete && styles.todayCompleteCard,
+      ]}>
         <View style={styles.dayTop}>
-          <Text style={styles.dayDate}>{DAYS[date.getDay()]} {date.getDate()}</Text>
-          <Text style={[styles.status, complete ? recovered > 0 && raw < DAILY_TARGET ? styles.purple : styles.green : partial ? styles.gold : styles.red]}>{status}</Text>
+          <Text style={[styles.dayDate, darkTodayText && styles.todayDarkText]}>{DAYS[date.getDay()]} {date.getDate()}</Text>
+          <Text style={[
+            styles.status,
+            isToday ? (complete ? styles.todayCompleteText : styles.todayDarkText) : complete ? comebackComplete ? styles.purple : styles.green : partial ? styles.gold : styles.red,
+          ]}>{status}</Text>
         </View>
-        <Text style={[styles.dayActivity, !dayLogs.length && styles.dayActivityMuted]}>{dayLogs.length ? dayLogs.map((item) => item.activity_name).join(' • ') : future ? 'Upcoming' : recovered > 0 ? 'Recovered with comeback' : 'No training logged'}</Text>
-        {recovered > 0 ? <Text style={styles.comeback}>+{Math.round(recovered)} comeback min • {Math.round(credit)} / {DAILY_TARGET}</Text> : null}
+        <Text style={[
+          styles.dayActivity,
+          !dayLogs.length && !isToday && styles.dayActivityMuted,
+          darkTodayText && styles.todayDarkText,
+          todayComplete && styles.todayCompleteText,
+        ]}>{dayLogs.length ? dayLogs.map((item) => item.activity_name).join(' • ') : future ? 'Upcoming' : recovered > 0 ? 'Recovered with comeback' : 'No training logged'}</Text>
+        {recovered > 0 ? <Text style={[styles.comeback, isToday && (complete ? styles.todayCompleteText : styles.todayDarkText)]}>+{Math.round(recovered)} comeback min • {Math.round(credit)} / {DAILY_TARGET}</Text> : null}
+        {isToday ? <Text style={[styles.todayMarker, complete ? styles.todayCompleteText : styles.todayDarkText]}>★ TODAY</Text> : null}
       </Card>;
     })}</View>
   </>;
@@ -197,8 +219,13 @@ const styles = StyleSheet.create({
   period: { color: colours.white, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
   chevronButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' }, chevron: { color: colours.gold, fontSize: 26, lineHeight: 27 },
   weekList: { gap: 7 }, dayCard: { paddingVertical: 9, paddingHorizontal: 12, borderRadius: 11 }, completeCard: { borderColor: colours.green }, partialCard: { borderColor: colours.gold }, missedCard: { borderColor: colours.red }, comebackCard: { borderColor: colours.purple },
+  todayIncompleteCard: { backgroundColor: colours.gold, borderColor: colours.gold, borderWidth: 1 },
+  todayCompleteCard: { backgroundColor: colours.green, borderColor: colours.green, borderWidth: 1 },
   dayTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, dayDate: { color: colours.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.6 }, status: { fontSize: 8, fontWeight: '900', letterSpacing: 0.6 }, green: { color: colours.green }, gold: { color: colours.gold }, red: { color: colours.red }, purple: { color: colours.purple },
+  todayDarkText: { color: colours.background },
+  todayCompleteText: { color: colours.white },
   dayActivity: { color: colours.white, fontSize: 11, fontWeight: '800', marginTop: 4 }, dayActivityMuted: { color: colours.muted }, comeback: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 3 },
+  todayMarker: { alignSelf: 'flex-end', fontSize: 7, fontWeight: '900', letterSpacing: 0.7, marginTop: 4 },
   scoreCard: { alignItems: 'center', paddingVertical: 13, marginBottom: 10 }, scoreLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.1 }, score: { color: colours.white, fontSize: 32, fontWeight: '900', lineHeight: 36, marginTop: 1 }, target: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 },
   weekdays: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 5 }, weekday: { width: '13.2%', textAlign: 'center', color: colours.muted, fontSize: 8, fontWeight: '900' },
   calendar: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 }, dayCell: { width: '12.9%', aspectRatio: 1, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }, dayCellEmpty: { width: '12.9%', aspectRatio: 1 }, dayNumber: { color: colours.white, fontSize: 9, fontWeight: '900' },
