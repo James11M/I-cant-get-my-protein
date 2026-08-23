@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.43 - 2026-08-23
+
+- Added interactive Month History date states and tap-through daily activity breakdowns.
+- Changed Year History percentages to score only days actually available since signup and up to today in the current month.
+
 ## 0.1.42 - 2026-08-23
 
 - Reworked friend-code entry into a six-slot auto-submit flow and fixed friend-code generation failing on an ambiguous expiry reference.
