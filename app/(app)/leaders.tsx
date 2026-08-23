@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
+import { PrimaryActionButton } from '@/components/PrimaryActionButton';
 import { Screen } from '@/components/Screen';
 import { colours } from '@/theme/colours';
 
@@ -60,6 +62,7 @@ function Leaderboard({ group, setGroup }: { group: Group; setGroup: (value: Grou
   const percentageGroup = group === 'Houses' || group === 'Schools';
   return <>
     <View style={styles.groups}>{(['Friends','Teams','Houses','Schools'] as Group[]).map((item) => <Pressable key={item} onPress={() => setGroup(item)} style={[styles.groupPill, group === item && styles.groupPillActive]}><Text style={[styles.groupText, group === item && styles.groupTextActive]}>{item}</Text></Pressable>)}</View>
+    {group === 'Friends' ? <PrimaryActionButton label="+ ADD FRIEND" onPress={() => router.push('/(app)/friends')} style={styles.addFriendButton} /> : null}
     <View style={styles.leaderList}>{LEADERBOARD[group].map(([name, value, you], index) => <Card key={name} style={[styles.leaderCard, you && styles.youCard]}>
       <Text style={styles.rank}>{index + 1}</Text>
       <View style={styles.leaderCopy}><Text style={styles.leaderName}>{name}{you ? ' • YOU' : ''}</Text></View>
@@ -142,6 +145,7 @@ const styles = StyleSheet.create({
   segment: { flex: 1, minHeight: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }, segmentActive: { backgroundColor: colours.gold },
   segmentText: { color: colours.muted, fontSize: 7, fontWeight: '900', letterSpacing: 0.7 }, segmentTextActive: { color: colours.background }, body: { paddingTop: 12 },
   groups: { flexDirection: 'row', gap: 6, marginBottom: 11 }, groupPill: { flex: 1, minHeight: 30, borderRadius: 15, backgroundColor: colours.card2, borderWidth: 1, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' }, groupPillActive: { borderColor: colours.gold }, groupText: { color: colours.muted, fontSize: 8, fontWeight: '900' }, groupTextActive: { color: colours.gold },
+  addFriendButton: { marginBottom: 11 },
   leaderList: { gap: 8 }, leaderCard: { minHeight: 61, paddingVertical: 11, flexDirection: 'row', alignItems: 'center' }, youCard: { borderColor: colours.gold }, rank: { color: colours.gold, fontSize: 20, fontWeight: '900', width: 31 }, leaderCopy: { flex: 1 }, leaderName: { color: colours.white, fontSize: 13, fontWeight: '900' }, leaderXp: { color: colours.white, fontSize: 11, fontWeight: '900' },
   awardsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 9 }, awardCard: { width: '48%', minHeight: 139, alignItems: 'center', justifyContent: 'center', padding: 10 }, awardIcon: { width: 53, height: 53, borderRadius: 27, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, awardEmoji: { fontSize: 25 }, awardTitle: { color: colours.white, fontSize: 11, fontWeight: '900', textAlign: 'center', marginTop: 9 }, awardText: { color: colours.muted, fontSize: 8, fontWeight: '700', textAlign: 'center', marginTop: 4 },
   sectionLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginBottom: 8 }, statsRow: { flexDirection: 'row', gap: 9 }, statCard: { flex: 1, minHeight: 139, padding: 12 }, statLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 }, statValue: { color: colours.white, fontSize: 24, fontWeight: '900', marginTop: 6 }, statUnit: { fontSize: 12 }, statGoal: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 3 }, smallAdd: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 36, alignItems: 'center', justifyContent: 'center', marginTop: 11 }, smallAddText: { color: colours.gold, fontSize: 9, fontWeight: '900' },
