@@ -82,11 +82,11 @@ function Segment({ label, active, onPress }: { label: string; active: boolean; o
   return <Pressable style={[styles.segment, active && styles.segmentActive]} onPress={onPress}><Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text></Pressable>;
 }
 
-function PeriodRow({ label, onBack, onNext, backDisabled = false }: { label: string; onBack: () => void; onNext: () => void; backDisabled?: boolean }) {
+function PeriodRow({ label, onBack, onNext, backDisabled = false, nextDisabled = false }: { label: string; onBack: () => void; onNext: () => void; backDisabled?: boolean; nextDisabled?: boolean }) {
   return <View style={styles.periodRow}>
     <Pressable style={[styles.chevronButton, backDisabled && styles.chevronDisabled]} onPress={onBack} disabled={backDisabled}><Text style={[styles.chevron, backDisabled && styles.chevronTextDisabled]}>‹</Text></Pressable>
     <Text style={styles.period}>{label}</Text>
-    <Pressable style={styles.chevronButton} onPress={onNext}><Text style={styles.chevron}>›</Text></Pressable>
+    <Pressable style={[styles.chevronButton, nextDisabled && styles.chevronDisabled]} onPress={onNext} disabled={nextDisabled}><Text style={[styles.chevron, nextDisabled && styles.chevronTextDisabled]}>›</Text></Pressable>
   </View>;
 }
 
@@ -94,10 +94,12 @@ function WeekView({ logs, today, openedAt, weekDate, onWeek }: { logs: ActivityL
   const monday = startOfWeek(weekDate);
   const sunday = addDays(monday, 6);
   const firstWeek = startOfWeek(openedAt);
+  const currentWeek = startOfWeek(today);
   const backDisabled = dateOnly(monday) <= dateOnly(firstWeek);
+  const nextDisabled = dateOnly(monday) >= dateOnly(currentWeek);
   const comeback = getRollingComeback(logs, today, openedAt);
   return <>
-    <PeriodRow label={`${dateLabel(monday)} – ${dateLabel(sunday)}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onWeek(addDays(weekDate, -7)); }} onNext={() => onWeek(addDays(weekDate, 7))} />
+    <PeriodRow label={`${dateLabel(monday)} – ${dateLabel(sunday)}`} backDisabled={backDisabled} nextDisabled={nextDisabled} onBack={() => { if (!backDisabled) onWeek(addDays(weekDate, -7)); }} onNext={() => { if (!nextDisabled) onWeek(addDays(weekDate, 7)); }} />
     <View style={styles.weekList}>{Array.from({ length: 7 }, (_, i) => {
       const date = addDays(monday, i);
       const beforeAccount = dateOnly(date) < dateOnly(openedAt);
@@ -150,19 +152,20 @@ function MonthView({ logs, today, openedAt, monthDate, onMonth }: { logs: Activi
   const monthStart = new Date(year, month, 1, 12);
   const offset = (monthStart.getDay() + 6) % 7;
   const firstMonth = new Date(openedAt.getFullYear(), openedAt.getMonth(), 1, 12);
+  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1, 12);
   const backDisabled = monthStart <= firstMonth;
+  const nextDisabled = monthStart >= currentMonth;
   const isCurrent = year === today.getFullYear() && month === today.getMonth();
-  const inFuture = monthStart > new Date(today.getFullYear(), today.getMonth(), 1, 12);
-  const endDay = inFuture ? 0 : isCurrent ? today.getDate() : days;
+  const endDay = isCurrent ? today.getDate() : days;
   const startDay = year === openedAt.getFullYear() && month === openedAt.getMonth() ? openedAt.getDate() : 1;
   const activeDays = Math.max(0, endDay - startDay + 1);
   const completeEquivalent = activeDays ? Array.from({ length: activeDays }, (_, i) => effectiveCreditForDate(logs, new Date(year, month, startDay + i, 12), today, openedAt)).reduce((sum, c) => sum + Math.min(1, c / DAILY_TARGET), 0) : 0;
   const targetDays = Math.max(1, Math.round(Math.max(1, activeDays) * (WEEKLY_ACTIVE_GOAL / 7)));
-  const score = inFuture || activeDays === 0 ? 0 : Math.min(100, Math.round((completeEquivalent / targetDays) * 100));
+  const score = activeDays === 0 ? 0 : Math.min(100, Math.round((completeEquivalent / targetDays) * 100));
   const comeback = getRollingComeback(logs, today, openedAt);
 
   return <>
-    <PeriodRow label={`${MONTH_NAMES[month]} ${year}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onMonth(addMonths(monthDate, -1)); }} onNext={() => onMonth(addMonths(monthDate, 1))} />
+    <PeriodRow label={`${MONTH_NAMES[month]} ${year}`} backDisabled={backDisabled} nextDisabled={nextDisabled} onBack={() => { if (!backDisabled) onMonth(addMonths(monthDate, -1)); }} onNext={() => { if (!nextDisabled) onMonth(addMonths(monthDate, 1)); }} />
     <Card style={styles.monthCard}>
       <View style={styles.monthScoreRow}>
         <View>
@@ -195,6 +198,7 @@ function MonthView({ logs, today, openedAt, monthDate, onMonth }: { logs: Activi
 
 function YearView({ logs, today, openedAt, year, onYear }: { logs: ActivityLog[]; today: Date; openedAt: Date; year: number; onYear: (year: number) => void }) {
   const backDisabled = year <= openedAt.getFullYear();
+  const nextDisabled = year >= today.getFullYear();
   const values = Array.from({ length: 12 }, (_, month) => {
     const monthStart = new Date(year, month, 1, 12);
     const monthEnd = new Date(year, month + 1, 0, 12);
@@ -208,14 +212,17 @@ function YearView({ logs, today, openedAt, year, onYear }: { logs: ActivityLog[]
     return Math.min(100, Math.round((equivalent / target) * 100));
   });
   return <>
-    <PeriodRow label={`${year}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onYear(year - 1); }} onNext={() => onYear(year + 1)} />
+    <PeriodRow label={`${year}`} backDisabled={backDisabled} nextDisabled={nextDisabled} onBack={() => { if (!backDisabled) onYear(year - 1); }} onNext={() => { if (!nextDisabled) onYear(year + 1); }} />
     <Card style={styles.yearCard}>
       <View style={styles.yearTop}><Text style={styles.scoreLabel}>YEAR</Text><Text style={styles.target}>TARGET {MONTH_TARGET}%</Text></View>
-      <View style={styles.chart}>{values.map((value, index) => {
-        const height = value === null ? 8 : Math.max(10, value * 1.35);
-        const colour = value === null ? colours.card2 : value >= MONTH_TARGET ? colours.green : value >= MONTH_TARGET * 0.8 ? colours.yellow : colours.red;
-        return <View key={index} style={styles.barColumn}><View style={[styles.bar, { height, backgroundColor: colour }]} /><Text style={styles.monthLetter}>{MONTHS[index]}</Text></View>;
-      })}</View>
+      <View style={styles.chart}>
+        <View pointerEvents="none" style={styles.targetLine}><Text style={styles.targetLineLabel}>{MONTH_TARGET}%</Text></View>
+        {values.map((value, index) => {
+          const height = value === null ? 8 : Math.max(10, value * 1.35);
+          const colour = value === null ? colours.card2 : value >= MONTH_TARGET ? colours.green : value >= MONTH_TARGET * 0.8 ? colours.yellow : colours.red;
+          return <View key={index} style={styles.barColumn}><View style={[styles.bar, { height, backgroundColor: colour }]} /><Text style={styles.monthLetter}>{MONTHS[index]}</Text></View>;
+        })}
+      </View>
     </Card>
   </>;
 }
@@ -297,6 +304,8 @@ const styles = StyleSheet.create({
   calendarText: { color: colours.white, fontSize: 9, fontWeight: '900' },
 
   yearCard: { paddingTop: 13, paddingBottom: 12 }, yearTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  chart: { height: 190, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
+  chart: { height: 190, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12, position: 'relative' },
+  targetLine: { position: 'absolute', left: 0, right: 0, bottom: 124, borderTopWidth: 1, borderStyle: 'dashed', borderTopColor: colours.gold, zIndex: 2 },
+  targetLineLabel: { position: 'absolute', right: 0, top: -12, color: colours.gold, fontSize: 7, fontWeight: '900' },
   barColumn: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end' }, bar: { width: 13, borderRadius: 4, marginBottom: 7 }, monthLetter: { color: colours.muted, fontSize: 7, fontWeight: '900' },
 });
