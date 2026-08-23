@@ -117,7 +117,7 @@ export default function HomeScreen() {
           <Card style={styles.comebackCard}>
             <View style={styles.rowBetween}>
               <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View>
-              <View style={styles.comebackOpenRow}><Text style={styles.open}>ROLLING 7D</Text><Text style={styles.comebackArrow}>→</Text></View>
+              <Text style={styles.open}>VIEW →</Text>
             </View>
             <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
           </Card>
@@ -238,16 +238,14 @@ const styles = StyleSheet.create({
   loggedEmoji: { width: 38, fontSize: 21 },
   loggedTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
   loggedMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
-  primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
-  primaryText: { color: colours.background, fontSize: 10, fontWeight: '900' },
+  primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 50, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
+  primaryText: { color: colours.background, fontSize: 11, fontWeight: '900' },
 
   comebackPress: { marginTop: 12 },
-  comebackCard: { borderColor: colours.purple },
+  comebackCard: { borderColor: colours.purple, backgroundColor: colours.card2 },
   inline: { flexDirection: 'row', alignItems: 'center' },
   comebackIcon: { color: colours.purple, fontSize: 20, fontWeight: '900', marginRight: 7 },
   comebackLabel: { color: colours.purple, fontSize: 9, fontWeight: '900' },
-  comebackOpenRow: { flexDirection: 'row', alignItems: 'center' },
-  open: { color: colours.green, fontSize: 9, fontWeight: '900' },
-  comebackArrow: { color: colours.purple, fontSize: 17, fontWeight: '900', marginLeft: 7 },
+  open: { color: colours.purple, fontSize: 9, fontWeight: '900' },
   comebackTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 7 },
 });
