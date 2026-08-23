@@ -57,6 +57,7 @@ export default function BadgeDetailScreen() {
 }
 
 function sequenceLabel(badge: EvaluatedBadge) {
+  if (badge.group === 'Swimming' && badge.family === 'ONE SESSION') return `${badge.threshold}`;
   if (badge.unit === 'm') return badge.threshold >= 1000 ? `${badge.threshold / 1000}K` : `${badge.threshold}`;
   if (badge.unit === 'sessions') return `${badge.threshold}`;
   if (badge.unit === 'min') return badge.threshold >= 1000 ? `${badge.threshold / 1000}K` : `${badge.threshold}`;
