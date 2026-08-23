@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.40 - 2026-08-23
+
+- Added persistent Sports & Activities management with user-created activity editing and per-user Hide / Show controls that preserve historical logs.
+
 ## 0.1.39 - 2026-08-23
 
 - Added per-exercise `SETS | HOW TO` views in the Workout screen, reusing Exercise Library illustrations and technique guidance with optional video links when available.
