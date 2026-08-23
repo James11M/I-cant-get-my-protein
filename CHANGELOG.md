@@ -1,206 +1,123 @@
 # Changelog
 
+## 0.1.34 - 2026-08-23
+
+- Restored the POC Strength Exercise Library with RepDB illustrations, swipeable exercise positions and technique details.
+- Added persistent per-user exercise favourites with a dedicated Favourites filter.
+- Added persistent per-user equipment availability settings with owner-only Row Level Security.
+- Restored the single-row horizontally scrollable equipment/favourites filter experience.
+
 ## 0.1.33 - 2026-08-23
 
 - Added one-tap 15, 30, 45, 60, 75 and 90 minute choices to Log Activity; choosing a quick duration saves immediately and returns to Home.
-- Kept manual duration entry available and show an inline `LOG ACTIVITY` action only after a custom value is entered.
-- Removed the Training Credit panel from Log Activity to keep the flow focused on recording what was done.
-- Added a shared `PrimaryActionButton` with larger, more readable text and applied it to primary gold actions on the activity flow and Home Add Training.
-- Moved Home card `VIEW →` actions into the same top title row as the card heading, preserving the shared accent-colour `CardAction` treatment.
-- Renamed Weekly Comeback to `Comeback Minutes` on Home and its detail page.
-- Reordered Comeback Minutes so Last 7 Days is shown first and moved the explanation, calculation summary and Consistency block into a bottom `HOW IT WORKS` show/hide card using the shared chevron convention.
-- Included queued Hit My Protein polish: shortened `recommended` to `rec.` and changed the selected goal treatment from info blue to solid gold with dark contrast text.
-- Corrected the shared CardAction component location under `src/components` so the `@/components/CardAction` alias resolves correctly in Expo.
+- Kept manual duration entry available with an inline `LOG ACTIVITY` action and removed the Training Credit panel.
+- Added a shared `PrimaryActionButton` for primary gold actions.
+- Corrected the shared CardAction component location so the Expo alias resolves correctly.
 
 ## 0.1.32 - 2026-08-23
 
 - Standardised card-level `VIEW →` actions as a reusable `CardAction` component.
-- Locked the design rule to the original Weekly Comeback treatment: small bold text, top-right aligned, with the action colour matching the card outline/accent colour.
-- Reverted the Hit My Protein Home card from the temporary outlined mini-button back to the shared gold `VIEW →` treatment.
-- Updated Weekly Comeback to use the same shared component in purple so future card actions can stay visually consistent.
 
 ## 0.1.31 - 2026-08-23
 
 - Restored the dotted 80% target line on the History Year chart.
-- Disabled forward navigation once History Week reaches the current week.
-- Disabled forward navigation once History Month reaches the current month.
-- Disabled forward navigation once History Year reaches the current year.
-- Kept the existing account-open-date lower bound, so History is now constrained between account opening and the current period.
+- Disabled forward navigation once History Week, Month or Year reaches the current period.
+- Kept the existing account-open-date lower bound.
 
 ## 0.1.30 - 2026-08-23
 
-- Made the currently selected Hit My Protein goal visually unmistakable with a solid info-blue card treatment and a `SELECTED` marker.
-- Kept the recommended multiplier in gold and any user override in white on the selected goal card.
-- Updated the Home Hit My Protein card so a fully configured user sees their selected goal as the main white title, using the same 23px / 900-weight treatment as the Home Level title.
-- Moved the calculated protein target beneath the goal title in gold, followed by the weight × multiplier calculation.
+- Updated the Hit My Protein selected-goal and Home target presentation.
 
 ## 0.1.29 - 2026-08-23
 
-- Added the active advanced protein multiplier to the selected Hit My Protein goal card when a user has overridden the recommended value.
-- Kept the standard recommendation in gold and show the override in white as, for example, `1.9 g/kg set by user`.
-- Restyled the Hit My Protein Home card `VIEW →` action as the same compact gold-outline button treatment used by the Settings `+ ADD` controls.
+- Added visibility of user-overridden protein multipliers.
 
 ## 0.1.28 - 2026-08-23
 
-- Corrected the Hit My Protein Home card routing so an `ADD YOUR WEIGHT` state opens Stats & Measurements directly.
-- Kept `SET YOUR GOAL` routing to Hit My Protein settings when weight is already present but no protein goal has been selected.
-- Kept completed protein-target cards routing to Hit My Protein details.
+- Corrected Hit My Protein Home-card routing for missing weight and goal states.
 
 ## 0.1.27 - 2026-08-23
 
-- Restored the POC `info blue` treatment for an incomplete current day in History Week while retaining the stronger solid-background TODAY card and `INCOMPLETE` wording.
-- Kept a completed current day solid green with white text and retained the `★ TODAY` marker.
-- Rebuilt History Month against the uploaded POC reference so weekday headings and date cells share an exact seven-column `14.2857%` grid and remain aligned.
-- Moved Month Score, target badge and calendar back into the single POC-style month card and kept today blue until complete, then green.
-- Limited History Week, Month and Year navigation to the user's account-open date using the immutable profile `created_at` value already captured at signup.
-- Excluded pre-account days from History scoring and rendered them as neutral/non-active dates rather than missed training.
+- Restored the POC info-blue treatment for the current History day and rebuilt Month alignment against the POC reference.
+- Limited History navigation to the user's account-open date and excluded pre-account dates from scoring.
 - Added development backlog issue #3 for signup email confirmation and preservation of the eventual activation timestamp.
 
 ## 0.1.26 - 2026-08-23
 
-- Restored the tap-through Progress / Levels screen behind the top Home level card, using the newly supplied POC screenshots as the visual reference.
-- Added the active-level summary, Active XP and Lifetime XP cards, and the full Level 1–10 list with the current level highlighted.
-- Added the missing Hit My Protein Home card when the feature is enabled.
-- The Home protein card now shows the calculated daily grams target when both a goal and current weight are available, or a clear Set Your Goal / Add Your Weight state when configuration is incomplete.
-- Added persistent `current_weight_kg` storage to profiles with a bounded 20–300 kg database constraint.
-- Connected Stats & Measurements Weight to Supabase so the Home protein target is calculated from stored user data rather than a placeholder.
-- Added the two supplied Progress / Levels screenshots to the ChatGPT Library under `I Cant Hit My Protein/POC References` for future visual parity work.
+- Restored the tap-through Progress / Levels screen behind the Home level card.
+- Added the Hit My Protein Home card and persistent current weight storage used by its calculation.
+- Added the supplied Progress / Levels screenshots to the project reference library.
 
 ## 0.1.25 - 2026-08-23
 
-- Updated Week History so the current day is never shown as a red missed day while it is still in progress.
-- Current-day cards now use a solid gold background with dark contrast text while incomplete, and a solid green background with white text once complete.
-- Changed the current-day incomplete status from `MISSED` to `INCOMPLETE`.
-- Added a `★ TODAY` marker in the lower-right of the current-day card so it remains visually distinct from historical days.
-- Left past-day missed/partial/comeback styling and rolling 7-day recovery logic unchanged.
+- Updated Week History so the current day uses a dedicated TODAY state rather than being marked missed while still in progress.
 
 ## 0.1.24 - 2026-08-23
 
-- Changed date-of-birth entry and display to UK `DD-MM-YYYY` format while continuing to store ISO dates in Supabase.
-- Added a shared up/down chevron component as the standard app convention for collapsed and expanded controls.
-- Routed Stats & Measurements to a corrected POC-style screen using the shared chevrons and compact gold-outline `+ ADD` buttons modelled on the BACK control.
-- Added a visible Hit My Protein entry under Secret Nerd Stuff with a persistent enable/disable switch.
-- Added DOB-aware protein goal choices: adult users can choose Stay Active, Build Muscle, or Lose Fat / Keep Muscle; under-18 users instead see Stay Active, Training & Recovery, or Build Strength & Muscle, with no weight-loss goal.
-- Added one-page protein goal explanations with recommended g/kg values, bounded advanced multiplier controls, and Reset to Recommended.
-- Kept Hit My Protein as a calculator/reference feature only; no food logging was introduced.
+- Added UK date-of-birth handling, the standard expand/collapse chevron convention, and the initial Hit My Protein configuration flow.
 - Added a separate development backlog item for QR-based friend invitations with no global user search and invite-only group membership.
 
 ## 0.1.22 - 2026-08-23
 
-- Added date of birth as a required field when creating a new account, with basic past-date validation.
-- Stored date of birth in the Supabase profile created by the auth signup trigger.
-- Added a Profile & Account screen under Secret Nerd Stuff so existing users can add or correct their display name and date of birth.
-- Added dormant profile fields for the optional Hit My Protein feature: enabled state, selected goal and advanced multiplier override.
-- Constrained protein goals and multiplier overrides at the database layer so future calculator settings cannot store unsupported values.
+- Added date of birth as a required signup/profile field and added dormant Hit My Protein preference fields.
 - Hardened the auth profile-creation trigger by revoking direct RPC execution from public, anonymous and authenticated roles.
-- Kept Hit My Protein calculations and screens out of this release so the profile/auth foundation can be tested independently.
 
 ## 0.1.21 - 2026-08-23
 
 - Restored the queued POC parity pass after the interrupted GitHub session.
-- Replaced the Today Comeback status action with the agreed purple `VIEW →` treatment and strengthened the purple Comeback card treatment.
-- Aligned History Week, Month and Year calculations with the rolling 7-day Comeback window used by Today, including purple repaired states and recovered credit in summary calculations.
-- Renamed the Leaders sub-tab from `LEADERBOARD` to `LEADERS` while preserving Friends, Teams, Houses and Schools views.
-- Simplified the Stats weight chart by reducing date-label clutter while retaining interactive tap values.
-- Enlarged the central bottom-nav Add control, Today `+ ADD TRAINING`, and Stats `+ ADD` controls for closer POC parity and easier tapping.
+- Aligned History with the rolling 7-day Comeback window and updated Leaders/Stats/Add controls.
 
 ## 0.1.20 - 2026-08-22
 
-- Added a shared POC exercise and activity catalogue, including the full 42-exercise bodyweight library plus the original dumbbell, kettlebell and gym starters.
-- Restored the Strength Quick Start workout builder with exercise search and equipment filters, editable sets, reps/time and weights, add-set and remove-exercise controls, estimated duration, completion summary and template naming.
-- Connected completed strength workouts back into the existing Supabase-backed activity history.
-- Expanded Exercise Library from placeholder rows to a searchable/filterable catalogue with favourites and custom-exercise creation.
-- Restored the full POC Sports & Activities catalogue and custom activity creation.
-- Restored editable exercise timing, per-exercise rep pace, strength tracking, targets, core/advanced measurements and editable school term dates.
-- Kept the approved POC visual language and existing rolling 7-day fire/comeback rules while moving functionality into the production Expo Router structure.
+- Added the shared POC exercise/activity catalogue and restored the Strength Quick Start workout builder.
+- Expanded Exercise Library, Sports & Activities and configuration screens while preserving POC visual language.
 
 ## 0.1.19 - 2026-08-22
 
 - Replaced calendar-week Comeback locking with a rolling 7-day recovery window.
-- Limited comeback allocation to today plus the previous six days, so older dates automatically lock and can never be backfilled later.
-- Kept comeback allocation recent-first within the eligible seven-day window and aligned the Today fire calculation to the same rolling window.
-- Updated the Comeback explainer and Today card wording to make the rolling 7-day rule explicit.
 
 ## 0.1.18 - 2026-08-22
 
-- Standardised Secret Nerd Stuff cards to a consistent height sized for two-line titles and descriptions, while vertically centring shorter options.
-- Added a larger shared gold-outline `← BACK` button and applied it across activity, workout, settings, and new secondary screens.
-- Made the Weekly Comeback card on Today open a dedicated explainer screen.
-- Added a Weekly Comeback breakdown showing excess minutes, comeback rate, generated comeback minutes, and the last seven days with normal, repaired, and partial recovery states.
-- Corrected comeback allocation so discounted excess minutes fill the most recent missed day first, then work backwards through the current week.
-- Added the 260 excess × 50% = 130 comeback-minutes POC example and clarified that repaired days affect consistency going forward without retroactive XP.
+- Standardised Secret Nerd Stuff cards and BACK controls.
+- Added the Weekly Comeback explainer and rolling recovery breakdown.
 
 ## 0.1.17 - 2026-08-22
 
-- Fine-tuned the locked circular current-day fire marker by shifting it 2px right for optical centring.
-- Corrected streak rewards so day 1 is always ×1.00 / base XP, with consistency multipliers beginning from day 2.
-- Tightened the Awards cards so all six badges stay in the intended two-column grid.
-- Replaced the placeholder Stats line with a scaled interactive chart with axes, grid lines, connected points, date labels, and tap-to-view values.
-- Reworked Secret Nerd Stuff from the original `App.js` treatment with larger icons and text plus the original right-arrow glyph.
+- Corrected streak rewards and refined the fire marker, Awards cards, Stats chart and Secret Nerd Stuff treatment.
 
 ## 0.1.16 - 2026-08-22
 
-- Locked the preferred circular current-day marker around the Today fire icon.
-- Reworked History Week, Month, and Year views to follow the uploaded Snack POC and screenshots more closely while keeping Supabase-backed activity data.
-- Restored History period navigation, coloured day states, month score/calendar layout, year bars, and comeback cues.
-- Reworked Leaders to match the POC Leaderboard, Awards, and Stats screens, including Friends, Teams, Houses, and Schools tabs and the JAMES • YOU row treatment.
-- Reworked Secret Nerd Stuff to match the POC menu card sizing, gold borders, icons, typography, descriptions, and spacing.
-- Restored the POC strapline SCHOOL - SPORTS - AWARDS.
+- Reworked History, Leaders and Secret Nerd Stuff against the uploaded POC/screenshots and restored the SCHOOL - SPORTS - AWARDS strapline.
 
 ## 0.1.15 - 2026-08-22
 
-- Ported the Today screen styling directly from the uploaded Snack `App.js` instead of reinterpreting the approved POC.
-- Restored the gold Level card border, original typography, gold level circle text, blue Today target border, and white section headings.
-- Restored the exact 80px / 24-segment POC progress ring with 5x11 ticks and percentage-only centre text.
-- Restored the orange consistency multiplier and fire count, plus the original flame sizing and current-day underline treatment.
-- Restored the missing POC blue, orange, purple, and yellow theme accents.
+- Ported the Today styling directly from the uploaded Snack `App.js`, restoring the approved level card, typography, ring and fire treatment.
 
 ## 0.1.14 - 2026-08-22
 
-- Restored the Today target card to the Snack POC structure: compact target ring, separate progress bar, and a full-width XP / consistency multiplier panel.
-- Reduced the progress ring from 160px to 120px so it remains below half the target card width on iPhone layouts.
-- Restored the original Weekly Comeback calculation, including 50% recovery from credit earned above the daily target.
-- Seeded the Supabase activity library with the 15 POC system activities and their measurement types, targets, default durations and icons.
-- Added per-user activity favourites with Row Level Security.
-- Replaced the temporary free-text activity logger with the database-driven POC activity library, filters and favourite controls.
-- Added target-aware activity logging so time, distance and holes calculate raw credit using the POC rules, while recovery activities remain non-credit activity.
-- Preserved raw credit above 30 minutes in activity logs so Weekly Comeback can work correctly.
+- Restored the Today target card structure and Weekly Comeback calculation.
+- Seeded the Supabase activity library and added persistent activity favourites and target-aware logging.
 
 ## 0.1.13 - 2026-08-22
 
-- Rebuilt Today to follow the uploaded POC hierarchy: level, target ring, XP reward, fire score, capacity, activity and weekly comeback.
-- Rebuilt History with POC Week, Month and Year views while preserving real Supabase activity-log data.
-- Rebuilt Add Training with Sport / Activity and Strength Training choices, plus POC-style activity entry, Strength Quick Start and initial Workout screens.
-- Added Leaders with Leaderboard, Awards and Stats tabs in the approved POC visual system.
-- Added Secret Nerd Stuff and POC-style Exercise Library, Sports & Activities, Exercise Timing, Strength Tracking, Targets, Stats & Measurements and School Term Dates screens.
-- Updated the visible strapline from SCHOOL - SPORTS - AWARDS to SCHOOL - SPORTS - PROGRESS.
-- Restored the complete POC navy/gold palette including the locked card3/ring-track colour.
-- Wired all five locked bottom-navigation destinations to live Expo Router routes.
+- Rebuilt Today, History, Add Training, Leaders and Secret Nerd Stuff around the approved POC hierarchy while preserving Supabase-backed data.
 
 ## 0.1.12 - 2026-08-22
 
 - Re-established the uploaded POC `App.js` and screenshots as the visual source of truth for the full application.
-- Restored the approved product name to I Can't Hit My Protein.
-- Restored the locked POC bottom navigation treatment, including gold active states and the custom Home, clock, podium, gear, and central Add icons.
-- Preserved the broader product scope: individual use is primary and school, workplace, club, gym, university, and other organisation membership remains optional.
+- Restored the approved product name, bottom navigation and broader optional-organisation scope.
 
 ## 0.1.11 - 2026-08-22
 
-- Restored the Today screen to a fixed-height app layout so the main experience fits the iPhone viewport without page-style scrolling.
-- Kept the locked bottom navigation anchored at the bottom of the screen.
-- Compacted the Today progress ring, stat cards, and activity action while preserving the locked colours and ring behaviour.
+- Restored the Today screen to a fixed-height app layout with anchored bottom navigation.
 
 ## 0.1.10 - 2026-08-22
 
-- Restored the locked bottom navigation icon set with Home, clock, podium, filled gear, and the central Add button.
-- Restored the product name to I Can't Get My Protein.
-- Restored the locked segmented progress ring behaviour across 0–300% while preserving the locked ring track colour.
-- Pinned Expo Go-compatible vector icon and font dependencies for SDK 54.
+- Restored the locked bottom navigation icon set, product name and segmented progress ring behaviour.
 
 ## 0.1.9 - 2026-08-22
 
-- Pinned Expo SDK 54 router dependencies for Expo Go compatibility, including `react-native-screens` 4.16.
-- Added the Expo Router native support packages required by SDK 54.
+- Pinned Expo SDK 54 router dependencies for Expo Go compatibility.
 
 ## 0.1.8 - 2026-08-22
 
@@ -209,15 +126,11 @@
 ## 0.1.7 - 2026-08-22
 
 - Downgraded the Expo runtime to SDK 54 for Expo Go compatibility on physical iPhones.
-- Aligned React Native, React, Expo Router, Expo SQLite, and React type versions with SDK 54.
 - Added an Expo Go tunnel command for QR-code device preview.
-- Removed the development-client dependency from the default preview path.
 
 ## 0.1.6 - 2026-08-22
 
 - Restored the Today home screen to the dark navy and gold training design.
-- Added the segmented daily progress ring using the locked ring track colour.
-- Added Today stats, quick activity action, History link, and bottom navigation styling.
 
 ## 0.1.5 - 2026-08-22
 
@@ -225,9 +138,7 @@
 
 ## 0.1.4 - 2026-08-22
 
-- Added persistent activity logging to Supabase.
-- Added History backed by each signed-in user's activity logs.
-- Added Today navigation into Add Activity and History.
+- Added persistent activity logging to Supabase and History backed by each signed-in user's activity logs.
 
 ## 0.1.3 - 2026-08-22
 
@@ -239,15 +150,9 @@
 
 ## 0.1.1 - 2026-08-22
 
-- Added a fast Codespaces-to-iPhone web preview command.
-- Added Expo development-client support for native iPhone testing.
-- Updated iPhone preview guidance for Expo SDK 57.
+- Added a fast Codespaces-to-iPhone web preview command and Expo development-client support.
 
 ## 0.1.0 - 2026-08-22
 
-- Created the Expo SDK 57 + TypeScript + Expo Router production foundation.
-- Added Supabase client configuration and persistent auth session support.
-- Added login, signup, protected app routing, and initial signed-in Today screen.
-- Added the first Supabase migration for users, optional organisations, activities, activity logs, auth profile creation, and Row Level Security.
-- Added shared theme, brand, card, and screen components while preserving the existing app branding.
-- Added EAS build profiles, environment template, README, repository ignores, and iPhone preview instructions.
+- Created the Expo + TypeScript + Expo Router production foundation.
+- Added Supabase client configuration, persistent auth, initial schema, shared theme/components and EAS build profiles.
