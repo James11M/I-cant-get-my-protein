@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.45 - 2026-08-23
+
+- Rebuilt Leaders > Stats around persistent Core measurement settings and measurement history.
+- Added selectable measurement charts with persistent targets, a dotted target line, percentage gap to target and closer/further trend feedback.
+- Made Targets persistent and connected Stats measurement entry to the shared Stats & Measurements screen.
+
 ## 0.1.44 - 2026-08-23
 
 - Rebuilt Awards as a data-driven badge system with group filters, earned dates and full-screen badge detail views.
