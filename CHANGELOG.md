@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.28 - 2026-08-23
+
+- Corrected the Hit My Protein Home card routing so an `ADD YOUR WEIGHT` state opens Stats & Measurements directly.
+- Kept `SET YOUR GOAL` routing to Hit My Protein settings when weight is already present but no protein goal has been selected.
+- Kept completed protein-target cards routing to Hit My Protein details.
+
 ## 0.1.27 - 2026-08-23
 
 - Restored the POC `info blue` treatment for an incomplete current day in History Week while retaining the stronger solid-background TODAY card and `INCOMPLETE` wording.
