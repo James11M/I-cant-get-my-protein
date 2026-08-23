@@ -106,9 +106,9 @@ export default function ProteinSetupScreen() {
                     <Text style={styles.goalTitle}>{goal.title}</Text>
                     {selected ? <Text style={styles.selectedLabel}>SELECTED</Text> : null}
                   </View>
-                  <Text style={[styles.goalText, selected && styles.goalTextSelected]}>{goal.description}</Text>
+                  <Text style={styles.goalText}>{goal.description}</Text>
                   <View style={styles.rateRow}>
-                    <Text style={styles.goalRate}>{goal.multiplier.toFixed(1)} g/kg recommended</Text>
+                    <Text style={styles.goalRate}>{goal.multiplier.toFixed(1)} g/kg rec.</Text>
                     {selected && override !== null ? <Text style={styles.userRate}>{override.toFixed(1)} g/kg set by user</Text> : null}
                   </View>
                 </View>
@@ -154,16 +154,15 @@ const styles = StyleSheet.create({
   outlineText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
   sectionTitle: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.0, marginBottom: 8 },
   goalCard: { minHeight: 92, borderWidth: 1, borderColor: colours.gold, borderRadius: 13, backgroundColor: colours.card, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, marginBottom: 9 },
-  goalCardSelected: { borderWidth: 2, backgroundColor: colours.blue },
+  goalCardSelected: { borderWidth: 2, backgroundColor: colours.gold },
   goalTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 8 },
   goalTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
-  selectedLabel: { color: colours.white, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+  selectedLabel: { color: colours.background, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
   goalText: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 4, paddingRight: 8 },
-  goalTextSelected: { color: colours.white },
-  rateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 5, paddingRight: 8 },
-  goalRate: { color: colours.gold, fontSize: 9, fontWeight: '900' },
-  userRate: { color: colours.white, fontSize: 9, fontWeight: '900', marginLeft: 10 },
-  arrow: { color: colours.gold, fontSize: 27, lineHeight: 29, marginLeft: 8 },
+  rateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5, paddingRight: 8 },
+  goalRate: { color: colours.background, fontSize: 9, fontWeight: '900', flexShrink: 0 },
+  userRate: { color: colours.background, fontSize: 9, fontWeight: '900', marginLeft: 8, flexShrink: 1 },
+  arrow: { color: colours.background, fontSize: 27, lineHeight: 29, marginLeft: 8 },
   note: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 2, marginBottom: 10 },
   message: { color: colours.gold, fontSize: 9, lineHeight: 14, marginTop: 8 },
 });
