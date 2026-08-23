@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.22 - 2026-08-23
+
+- Added date of birth as a required field when creating a new account, with basic past-date validation.
+- Stored date of birth in the Supabase profile created by the auth signup trigger.
+- Added a Profile & Account screen under Secret Nerd Stuff so existing users can add or correct their display name and date of birth.
+- Added dormant profile fields for the optional Hit My Protein feature: enabled state, selected goal and advanced multiplier override.
+- Constrained protein goals and multiplier overrides at the database layer so future calculator settings cannot store unsupported values.
+- Hardened the auth profile-creation trigger by revoking direct RPC execution from public, anonymous and authenticated roles.
+- Kept Hit My Protein calculations and screens out of this release so the profile/auth foundation can be tested independently.
+
 ## 0.1.21 - 2026-08-23
 
 - Restored the queued POC parity pass after the interrupted GitHub session.
