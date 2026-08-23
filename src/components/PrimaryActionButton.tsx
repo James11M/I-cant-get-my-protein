@@ -7,12 +7,14 @@ type Props = {
   onPress: () => void;
   disabled?: boolean;
   style?: ViewStyle;
+  variant?: 'gold' | 'danger';
 };
 
-export function PrimaryActionButton({ label, onPress, disabled = false, style }: Props) {
+export function PrimaryActionButton({ label, onPress, disabled = false, style, variant = 'gold' }: Props) {
+  const danger = variant === 'danger';
   return (
-    <Pressable style={[styles.button, disabled && styles.disabled, style]} onPress={onPress} disabled={disabled}>
-      <Text style={styles.text}>{label}</Text>
+    <Pressable style={[styles.button, danger && styles.dangerButton, disabled && styles.disabled, style]} onPress={onPress} disabled={disabled}>
+      <Text style={[styles.text, danger && styles.dangerText]}>{label}</Text>
     </Pressable>
   );
 }
@@ -26,6 +28,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
+  dangerButton: { backgroundColor: colours.red },
   disabled: { opacity: 0.5 },
   text: {
     color: colours.background,
@@ -34,4 +37,5 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.8,
   },
+  dangerText: { color: colours.white },
 });
