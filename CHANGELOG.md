@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.36 - 2026-08-23
+
+- Added editable History Week records so users can add missed training or remove incorrect entries from past days.
+- Preserved the selected History date through Sport / Activity and Strength Training so corrections are stored against the intended day.
+- Added half-minute precision to Comeback Minutes displays.
+
 ## 0.1.35 - 2026-08-23
 
 - Added age-gated school linking for users aged 13–19, with subscribed-school selection, read-only school calendars and school-driven Term Time / Holiday status.
