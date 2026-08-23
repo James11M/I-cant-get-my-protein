@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.21 - 2026-08-23
+
+- Restored the queued POC parity pass after the interrupted GitHub session.
+- Replaced the Today Comeback status action with the agreed purple `VIEW →` treatment and strengthened the purple Comeback card treatment.
+- Aligned History Week, Month and Year calculations with the rolling 7-day Comeback window used by Today, including purple repaired states and recovered credit in summary calculations.
+- Renamed the Leaders sub-tab from `LEADERBOARD` to `LEADERS` while preserving Friends, Teams, Houses and Schools views.
+- Simplified the Stats weight chart by reducing date-label clutter while retaining interactive tap values.
+- Enlarged the central bottom-nav Add control, Today `+ ADD TRAINING`, and Stats `+ ADD` controls for closer POC parity and easier tapping.
+
 ## 0.1.20 - 2026-08-22
 
 - Added a shared POC exercise and activity catalogue, including the full 42-exercise bodyweight library plus the original dumbbell, kettlebell and gym starters.
