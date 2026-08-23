@@ -8,6 +8,7 @@ import { Card } from '@/components/Card';
 import { ProgressRing } from '@/components/ProgressRing';
 import { Screen } from '@/components/Screen';
 import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
+import { supabase } from '@/lib/supabase';
 import { colours } from '@/theme/colours';
 
 const DAILY_TARGET = 30;
@@ -19,13 +20,40 @@ const LEVELS = [
   [6, 'Competitor', 3100], [7, 'Performer', 6300], [8, 'Expert', 30000], [9, 'Leader', 42000], [10, 'Master', 51100],
 ] as const;
 
+type ProteinProfile = {
+  enabled: boolean;
+  goal: string | null;
+  override: number | null;
+  weight: number | null;
+  dob: string | null;
+};
+
 export default function HomeScreen() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [protein, setProtein] = useState<ProteinProfile>({ enabled: false, goal: null, override: null, weight: null, dob: null });
   const today = useMemo(() => new Date(), []);
 
   useFocusEffect(useCallback(() => {
     let live = true;
-    getActivityLogs().then((items) => { if (live) setLogs(items); }).catch(() => { if (live) setLogs([]); });
+    async function load() {
+      const [items, userData] = await Promise.all([
+        getActivityLogs().catch(() => [] as ActivityLog[]),
+        supabase ? supabase.auth.getUser() : Promise.resolve({ data: { user: null }, error: null }),
+      ]);
+      if (!live) return;
+      setLogs(items);
+      if (!supabase || !userData.data.user) return;
+      const { data } = await supabase.from('profiles').select('date_of_birth,protein_enabled,protein_goal,protein_multiplier_override,current_weight_kg').eq('id', userData.data.user.id).single();
+      if (!live || !data) return;
+      setProtein({
+        enabled: Boolean(data.protein_enabled),
+        goal: data.protein_goal || null,
+        override: data.protein_multiplier_override == null ? null : Number(data.protein_multiplier_override),
+        weight: data.current_weight_kg == null ? null : Number(data.current_weight_kg),
+        dob: data.date_of_birth || null,
+      });
+    }
+    load().catch(() => { if (live) setLogs([]); });
     return () => { live = false; };
   }, []));
 
@@ -41,6 +69,8 @@ export default function HomeScreen() {
   const multiplier = FIRE_MULTIPLIER[priorFireScore];
   const comeback = getRollingComeback(logs, today);
   const complete = todayCredit >= DAILY_TARGET;
+  const proteinMultiplier = getProteinMultiplier(protein, today);
+  const proteinTarget = protein.weight && protein.goal && proteinMultiplier ? Math.round(protein.weight * proteinMultiplier) : null;
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
@@ -49,19 +79,36 @@ export default function HomeScreen() {
         <Text style={styles.title}>Today</Text>
         <Text style={styles.subtitle}>{today.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()}  •  HOLIDAY</Text>
 
-        <Card style={styles.levelCard}>
-          <View style={styles.rowBetween}>
-            <View style={styles.flex}>
-              <Text style={styles.goldLabel}>LEVEL {rank.level}</Text>
-              <Text style={styles.levelTitle}>{rank.title}</Text>
-              <Text style={styles.activeXp}>{activeXP.toLocaleString()} ACTIVE XP</Text>
-              {rank.next ? <Text style={styles.nextLevel}>{rank.xpToNext.toLocaleString()} XP → {rank.next.title}</Text> : null}
+        <Pressable onPress={() => router.push('/(app)/levels')}>
+          <Card style={styles.levelCard}>
+            <View style={styles.rowBetween}>
+              <View style={styles.flex}>
+                <Text style={styles.goldLabel}>LEVEL {rank.level}</Text>
+                <Text style={styles.levelTitle}>{rank.title}</Text>
+                <Text style={styles.activeXp}>{activeXP.toLocaleString()} ACTIVE XP</Text>
+                {rank.next ? <Text style={styles.nextLevel}>{rank.xpToNext.toLocaleString()} XP → {rank.next.title}</Text> : null}
+              </View>
+              <View style={styles.levelCircle}><Text style={styles.levelNumber}>{rank.level}</Text></View>
             </View>
-            <View style={styles.levelCircle}><Text style={styles.levelNumber}>{rank.level}</Text></View>
-          </View>
-          <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${rank.progress}%` }]} /></View>
-          <Text style={styles.tinyMuted}>Rolling 12-month XP</Text>
-        </Card>
+            <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${rank.progress}%` }]} /></View>
+            <Text style={styles.tinyMuted}>Rolling 12-month XP  •  VIEW LEVELS →</Text>
+          </Card>
+        </Pressable>
+
+        {protein.enabled ? (
+          <Pressable style={styles.proteinPress} onPress={() => router.push('/(app)/protein')}>
+            <Card style={styles.proteinCard}>
+              <View style={styles.rowBetween}>
+                <View style={styles.flex}>
+                  <Text style={styles.proteinLabel}>HIT MY PROTEIN</Text>
+                  <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : !protein.weight ? 'ADD YOUR WEIGHT' : `${proteinTarget}g`}</Text>
+                  <Text style={styles.proteinMeta}>{proteinTarget ? `${protein.weight} kg × ${proteinMultiplier?.toFixed(1)} g/kg • daily target` : !protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
+                </View>
+                <Text style={styles.proteinView}>VIEW →</Text>
+              </View>
+            </Card>
+          </Pressable>
+        ) : null}
 
         <Card style={styles.targetCard}>
           <View style={styles.rowBetween}>
@@ -182,6 +229,23 @@ function getRank(xp: number) {
   const progress = Math.max(0, Math.min(100, Math.round(((xp - current[2]) / (next[2] - current[2])) * 100)));
   return { level: current[0], title: current[1], next: { title: next[1] }, xpToNext: next[2] - xp, progress };
 }
+function ageFromIsoDate(value: string | null, today: Date) {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  let age = today.getFullYear() - year;
+  if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) age -= 1;
+  return age;
+}
+function getProteinMultiplier(profile: ProteinProfile, today: Date) {
+  if (!profile.goal) return null;
+  if (profile.override !== null) return profile.override;
+  const under18 = (ageFromIsoDate(profile.dob, today) ?? 18) < 18;
+  if (profile.goal === 'stay_active') return under18 ? 1.2 : 1.4;
+  if (profile.goal === 'training_recovery') return 1.4;
+  if (profile.goal === 'build_muscle') return under18 ? 1.5 : 1.6;
+  if (profile.goal === 'lose_fat_keep_muscle') return under18 ? null : 1.8;
+  return null;
+}
 
 const styles = StyleSheet.create({
   screen: { paddingBottom: 6 },
@@ -202,6 +266,13 @@ const styles = StyleSheet.create({
   nextLevel: { color: colours.gold, fontSize: 10, fontWeight: '900', marginTop: 5 },
   levelCircle: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
   levelNumber: { color: colours.gold, fontSize: 23, fontWeight: '900' },
+
+  proteinPress: { marginTop: 12 },
+  proteinCard: { borderColor: colours.gold, backgroundColor: colours.card2 },
+  proteinLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+  proteinValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 },
+  proteinMeta: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 4, paddingRight: 8 },
+  proteinView: { color: colours.gold, fontSize: 9, fontWeight: '900', marginLeft: 10 },
 
   progressTrack: { height: 8, borderRadius: 4, backgroundColor: colours.card2, overflow: 'hidden', marginTop: 11 },
   progressFill: { height: '100%', backgroundColor: colours.gold },
