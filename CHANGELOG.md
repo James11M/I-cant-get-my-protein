@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.26 - 2026-08-23
+
+- Restored the tap-through Progress / Levels screen behind the top Home level card, using the newly supplied POC screenshots as the visual reference.
+- Added the active-level summary, Active XP and Lifetime XP cards, and the full Level 1–10 list with the current level highlighted.
+- Added the missing Hit My Protein Home card when the feature is enabled.
+- The Home protein card now shows the calculated daily grams target when both a goal and current weight are available, or a clear Set Your Goal / Add Your Weight state when configuration is incomplete.
+- Added persistent `current_weight_kg` storage to profiles with a bounded 20–300 kg database constraint.
+- Connected Stats & Measurements Weight to Supabase so the Home protein target is calculated from stored user data rather than a placeholder.
+- Added the two supplied Progress / Levels screenshots to the ChatGPT Library under `I Cant Hit My Protein/POC References` for future visual parity work.
+
 ## 0.1.25 - 2026-08-23
 
 - Updated Week History so the current day is never shown as a red missed day while it is still in progress.
