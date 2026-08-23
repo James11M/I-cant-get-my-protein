@@ -11,11 +11,36 @@ import { colours } from '@/theme/colours';
 
 type Tab = 'guidance' | 'protein';
 type FoodType = 'meat' | 'vegetarian' | 'vegan';
+type Food = { name: string; portion: string; protein: string };
 
-const FOODS: Record<FoodType, Array<[string, string]>> = {
-  meat: [['Chicken breast','75g cooked • ≈20g'],['Tuna','100g • ≈25g'],['Salmon','100g • ≈20–25g'],['Turkey','75g cooked • ≈20g'],['Lean beef','75g cooked • ≈20g'],['White fish','100g • ≈20g'],['Eggs','3 medium • ≈20g'],['Greek yoghurt','225g • ≈20g'],['Cottage cheese','150g • ≈18g'],['Milk','500ml • ≈17g']],
-  vegetarian: [['Eggs','3 medium • ≈20g'],['Greek yoghurt','225g • ≈20g'],['Cottage cheese','150g • ≈18g'],['Milk','500ml • ≈17g'],['Cheddar','60g • ≈15g'],['Lentils','200g cooked • ≈18g'],['Chickpeas','200g cooked • ≈16g'],['Baked beans','200g • ≈10g'],['Tofu','150g • ≈18g'],['Edamame','150g • ≈17g']],
-  vegan: [['Tofu','150g • ≈18g'],['Tempeh','100g • ≈19g'],['Lentils','200g cooked • ≈18g'],['Chickpeas','200g cooked • ≈16g'],['Edamame','150g • ≈17g'],['Soya mince','Typical serving • ≈20g'],['Baked beans','200g • ≈10g'],['Peanut butter','2 tbsp • ≈8g'],['Mixed nuts','30g • ≈6g'],['Broccoli','100g • ≈3g']],
+const FOODS: Record<FoodType, Food[]> = {
+  meat: [
+    { name: 'Chicken breast', portion: '75g cooked', protein: '≈20g' },
+    { name: 'Tuna', portion: '100g', protein: '≈25g' },
+    { name: 'Salmon', portion: '100g', protein: '≈20–25g' },
+    { name: 'Turkey', portion: '75g cooked', protein: '≈20g' },
+    { name: 'Lean beef', portion: '75g cooked', protein: '≈20g' },
+    { name: 'White fish', portion: '100g', protein: '≈20g' },
+  ],
+  vegetarian: [
+    { name: 'Eggs', portion: '3 medium', protein: '≈20g' },
+    { name: 'Greek yoghurt', portion: '225g', protein: '≈20g' },
+    { name: 'Cottage cheese', portion: '150g', protein: '≈18g' },
+    { name: 'Milk', portion: '500ml', protein: '≈17g' },
+    { name: 'Cheddar', portion: '60g', protein: '≈15g' },
+  ],
+  vegan: [
+    { name: 'Tofu', portion: '150g', protein: '≈18g' },
+    { name: 'Tempeh', portion: '100g', protein: '≈19g' },
+    { name: 'Lentils', portion: '200g cooked', protein: '≈18g' },
+    { name: 'Chickpeas', portion: '200g cooked', protein: '≈16g' },
+    { name: 'Edamame', portion: '150g', protein: '≈17g' },
+    { name: 'Soya mince', portion: 'typical serving', protein: '≈20g' },
+    { name: 'Baked beans', portion: '200g', protein: '≈10g' },
+    { name: 'Peanut butter', portion: '2 tbsp', protein: '≈8g' },
+    { name: 'Mixed nuts', portion: '30g', protein: '≈6g' },
+    { name: 'Broccoli', portion: '100g', protein: '≈3g' },
+  ],
 };
 
 export default function ProteinDetailsScreen() {
@@ -73,7 +98,7 @@ export default function ProteinDetailsScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.foodTabs}>
           {([['meat','MEAT & FISH'],['vegetarian','VEGETARIAN'],['vegan','VEGAN']] as Array<[FoodType,string]>).map(([key,label]) => <Pressable key={key} style={[styles.foodTab, foodType === key && styles.foodTabOn]} onPress={() => setFoodType(key)}><Text style={[styles.foodTabText, foodType === key && styles.foodTabTextOn]}>{label}</Text></Pressable>)}
         </ScrollView>
-        <Card style={styles.foodCard}>{FOODS[foodType].map(([name, protein], index) => <View key={name} style={[styles.foodRow, index < FOODS[foodType].length - 1 && styles.divider]}><Text style={styles.foodName}>{name}</Text><Text style={styles.foodProtein}>{protein}</Text></View>)}</Card>
+        <Card style={styles.foodCard}>{FOODS[foodType].map((food, index) => <View key={food.name} style={[styles.foodRow, index < FOODS[foodType].length - 1 && styles.divider]}><View style={styles.foodCopy}><Text style={styles.foodName}>{food.name}</Text><Text style={styles.foodPortion}>{food.portion}</Text></View><Text style={styles.foodProtein}>{food.protein}</Text></View>)}</Card>
         <Text style={styles.note}>Approximate values for simple reference; portions and brands vary.</Text>
       </>}
     </Screen>
@@ -91,6 +116,6 @@ const styles = StyleSheet.create({
   target: { color: colours.white, fontSize: 36, fontWeight: '900', marginTop: 4 }, goal: { color: colours.white, fontSize: 16, fontWeight: '900', marginTop: 4 }, calc: { color: colours.muted, fontSize: 10, marginTop: 6 },
   tabs: { flexDirection: 'row', borderWidth: 1, borderColor: colours.gold, borderRadius: 10, overflow: 'hidden', marginBottom: 12 }, tab: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center' }, tabOn: { backgroundColor: colours.gold }, tabText: { color: colours.gold, fontSize: 10, fontWeight: '900' }, tabTextOn: { color: colours.background },
   list: { gap: 9 }, tip: { paddingVertical: 14 }, tipTitle: { color: colours.gold, fontSize: 10, fontWeight: '900' }, tipText: { color: colours.white, fontSize: 11, lineHeight: 17, marginTop: 5 },
-  foodTabs: { gap: 8, paddingRight: 14, marginBottom: 12 }, foodTab: { minHeight: 38, paddingHorizontal: 14, borderWidth: 1, borderColor: colours.gold, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }, foodTabOn: { backgroundColor: colours.gold }, foodTabText: { color: colours.gold, fontSize: 9, fontWeight: '900' }, foodTabTextOn: { color: colours.background },
-  foodCard: { paddingVertical: 4 }, foodRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, divider: { borderBottomWidth: 1, borderBottomColor: colours.border }, foodName: { color: colours.white, fontSize: 12, fontWeight: '900' }, foodProtein: { color: colours.gold, fontSize: 10, fontWeight: '800' }, note: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 7, marginBottom: 10 },
+  foodTabs: { gap: 8, paddingRight: 18, marginBottom: 12 }, foodTab: { minHeight: 38, paddingHorizontal: 13, borderWidth: 1, borderColor: colours.gold, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }, foodTabOn: { backgroundColor: colours.gold }, foodTabText: { color: colours.gold, fontSize: 9, fontWeight: '900' }, foodTabTextOn: { color: colours.background },
+  foodCard: { paddingVertical: 4 }, foodRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, divider: { borderBottomWidth: 1, borderBottomColor: colours.border }, foodCopy: { flex: 1, paddingRight: 12 }, foodName: { color: colours.white, fontSize: 12, fontWeight: '900' }, foodPortion: { color: colours.gold, fontSize: 9, fontWeight: '800', marginTop: 3 }, foodProtein: { color: colours.white, fontSize: 18, fontWeight: '900', minWidth: 64, textAlign: 'right' }, note: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 7, marginBottom: 10 },
 });
