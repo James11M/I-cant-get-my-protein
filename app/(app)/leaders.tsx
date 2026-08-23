@@ -7,7 +7,7 @@ import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
 import { colours } from '@/theme/colours';
 
-type Mode = 'leaderboard' | 'awards' | 'stats';
+type Mode = 'leaders' | 'awards' | 'stats';
 type Group = 'Friends' | 'Teams' | 'Houses' | 'Schools';
 type ChartEntry = { date: string; value: number };
 const LEADERBOARD: Record<Group, [string, number, boolean?][]> = {
@@ -29,7 +29,7 @@ const WEIGHT_ENTRIES: ChartEntry[] = [
 ];
 
 export default function LeadersScreen() {
-  const [mode, setMode] = useState<Mode>('leaderboard');
+  const [mode, setMode] = useState<Mode>('leaders');
   const [group, setGroup] = useState<Group>('Friends');
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
@@ -37,12 +37,12 @@ export default function LeadersScreen() {
         <Brand />
         <Text style={styles.title}>Leaders</Text>
         <View style={styles.segments}>
-          <Segment label="LEADERBOARD" active={mode === 'leaderboard'} onPress={() => setMode('leaderboard')} />
+          <Segment label="LEADERS" active={mode === 'leaders'} onPress={() => setMode('leaders')} />
           <Segment label="AWARDS" active={mode === 'awards'} onPress={() => setMode('awards')} />
           <Segment label="STATS" active={mode === 'stats'} onPress={() => setMode('stats')} />
         </View>
         <View style={styles.body}>
-          {mode === 'leaderboard' ? <Leaderboard group={group} setGroup={setGroup} /> : null}
+          {mode === 'leaders' ? <Leaderboard group={group} setGroup={setGroup} /> : null}
           {mode === 'awards' ? <Awards /> : null}
           {mode === 'stats' ? <Stats /> : null}
         </View>
@@ -84,7 +84,7 @@ function Stats() {
       <Card style={styles.statCard}><Text style={styles.statLabel}>BODY FAT</Text><Text style={styles.statValue}>15.1<Text style={styles.statUnit}>%</Text></Text><Text style={styles.statGoal}>GOAL 14%</Text><Pressable style={styles.smallAdd}><Text style={styles.smallAddText}>+ ADD</Text></Pressable></Card>
     </View>
     <Card style={styles.chartCard}>
-      <View style={styles.chartTop}><View><Text style={styles.statLabel}>WEIGHT</Text><Text style={styles.chartValue}>69.8 kg</Text></View><Pressable><Text style={styles.chartAdd}>+ ADD</Text></Pressable></View>
+      <View style={styles.chartTop}><View><Text style={styles.statLabel}>WEIGHT</Text><Text style={styles.chartValue}>69.8 kg</Text></View><Pressable style={styles.chartAddButton}><Text style={styles.chartAdd}>+ ADD</Text></Pressable></View>
       <ReusableLineChart entries={WEIGHT_ENTRIES} unit="kg" />
     </Card>
   </>;
@@ -93,11 +93,11 @@ function Stats() {
 function ReusableLineChart({ entries, unit }: { entries: ChartEntry[]; unit: string }) {
   const [width, setWidth] = useState(300);
   const [selected, setSelected] = useState(entries.length - 1);
-  const height = 170;
-  const paddingLeft = 36;
+  const height = 160;
+  const paddingLeft = 34;
   const paddingRight = 12;
   const paddingTop = 18;
-  const paddingBottom = 30;
+  const paddingBottom = 26;
   const values = entries.map((entry) => entry.value);
   let min = Math.min(...values);
   let max = Math.max(...values);
@@ -120,8 +120,6 @@ function ReusableLineChart({ entries, unit }: { entries: ChartEntry[]; unit: str
         const top = paddingTop + (index / 2) * usableHeight;
         return <View key={index} style={[styles.gridRow, { top }]}><Text style={styles.axisValue}>{value.toFixed(1)}</Text><View style={styles.gridLine} /></View>;
       })}
-      <View style={[styles.yAxis, { left: paddingLeft - 1, top: paddingTop, height: usableHeight }]} />
-      <View style={[styles.xAxis, { left: paddingLeft, right: paddingRight, top: paddingTop + usableHeight }]} />
       {points.slice(0, -1).map((point, index) => {
         const next = points[index + 1];
         const dx = next.x - point.x;
@@ -132,9 +130,8 @@ function ReusableLineChart({ entries, unit }: { entries: ChartEntry[]; unit: str
       })}
       {points.map((point, index) => <Pressable key={point.entry.date} onPress={() => setSelected(index)} style={[styles.pointHit, { left: point.x - 12, top: point.y - 12 }]}><View style={[styles.chartPoint, selected === index && styles.chartPointSelected]} /></Pressable>)}
       {selectedPoint ? <View pointerEvents="none" style={[styles.valueBubble, { left: Math.max(paddingLeft, Math.min(width - 76, selectedPoint.x - 30)), top: Math.max(0, selectedPoint.y - 35) }]}><Text style={styles.valueBubbleText}>{selectedPoint.entry.value.toFixed(1)} {unit}</Text></View> : null}
-      {points.map((point) => <Text key={`label-${point.entry.date}`} style={[styles.xLabel, { left: point.x - 22, top: paddingTop + usableHeight + 7 }]}>{point.entry.date}</Text>)}
+      {points.map((point, index) => index === 0 || index === points.length - 1 || index === Math.floor(points.length / 2) ? <Text key={`label-${point.entry.date}`} style={[styles.xLabel, { left: point.x - 22, top: paddingTop + usableHeight + 7 }]}>{point.entry.date}</Text> : null)}
     </View>
-    <Text style={styles.chartHint}>Tap a point to see its value</Text>
   </View>;
 }
 
@@ -147,7 +144,7 @@ const styles = StyleSheet.create({
   groups: { flexDirection: 'row', gap: 6, marginBottom: 11 }, groupPill: { flex: 1, minHeight: 30, borderRadius: 15, backgroundColor: colours.card2, borderWidth: 1, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' }, groupPillActive: { borderColor: colours.gold }, groupText: { color: colours.muted, fontSize: 8, fontWeight: '900' }, groupTextActive: { color: colours.gold },
   leaderList: { gap: 8 }, leaderCard: { minHeight: 61, paddingVertical: 11, flexDirection: 'row', alignItems: 'center' }, youCard: { borderColor: colours.gold }, rank: { color: colours.gold, fontSize: 20, fontWeight: '900', width: 31 }, leaderCopy: { flex: 1 }, leaderName: { color: colours.white, fontSize: 13, fontWeight: '900' }, leaderXp: { color: colours.white, fontSize: 11, fontWeight: '900' },
   awardsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 9 }, awardCard: { width: '48%', minHeight: 139, alignItems: 'center', justifyContent: 'center', padding: 10 }, awardIcon: { width: 53, height: 53, borderRadius: 27, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, awardEmoji: { fontSize: 25 }, awardTitle: { color: colours.white, fontSize: 11, fontWeight: '900', textAlign: 'center', marginTop: 9 }, awardText: { color: colours.muted, fontSize: 8, fontWeight: '700', textAlign: 'center', marginTop: 4 },
-  sectionLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginBottom: 8 }, statsRow: { flexDirection: 'row', gap: 9 }, statCard: { flex: 1, minHeight: 133, padding: 12 }, statLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 }, statValue: { color: colours.white, fontSize: 24, fontWeight: '900', marginTop: 6 }, statUnit: { fontSize: 12 }, statGoal: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 3 }, smallAdd: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 29, alignItems: 'center', justifyContent: 'center', marginTop: 11 }, smallAddText: { color: colours.gold, fontSize: 8, fontWeight: '900' },
-  chartCard: { marginTop: 9, minHeight: 240 }, chartTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }, chartValue: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 3 }, chartAdd: { color: colours.gold, fontSize: 8, fontWeight: '900', marginTop: 2 },
-  chartWrap: { marginTop: 8 }, plot: { position: 'relative', width: '100%' }, gridRow: { position: 'absolute', left: 0, right: 0, height: 1, flexDirection: 'row', alignItems: 'center' }, axisValue: { width: 31, color: colours.muted, fontSize: 7, fontWeight: '800', textAlign: 'right', marginRight: 5 }, gridLine: { flex: 1, height: 1, backgroundColor: colours.border, opacity: 0.7 }, yAxis: { position: 'absolute', width: 1, backgroundColor: colours.muted, opacity: 0.7 }, xAxis: { position: 'absolute', height: 1, backgroundColor: colours.muted, opacity: 0.7 }, chartLine: { position: 'absolute', height: 2, backgroundColor: colours.gold, borderRadius: 1 }, pointHit: { position: 'absolute', width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }, chartPoint: { width: 8, height: 8, borderRadius: 4, backgroundColor: colours.gold, borderWidth: 1, borderColor: colours.background }, chartPointSelected: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colours.white }, xLabel: { position: 'absolute', width: 44, color: colours.muted, fontSize: 6, fontWeight: '800', textAlign: 'center' }, valueBubble: { position: 'absolute', minWidth: 60, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 7, backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.gold, alignItems: 'center' }, valueBubbleText: { color: colours.white, fontSize: 8, fontWeight: '900' }, chartHint: { color: colours.muted, fontSize: 7, textAlign: 'center', marginTop: 2 },
+  sectionLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginBottom: 8 }, statsRow: { flexDirection: 'row', gap: 9 }, statCard: { flex: 1, minHeight: 139, padding: 12 }, statLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 }, statValue: { color: colours.white, fontSize: 24, fontWeight: '900', marginTop: 6 }, statUnit: { fontSize: 12 }, statGoal: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 3 }, smallAdd: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 36, alignItems: 'center', justifyContent: 'center', marginTop: 11 }, smallAddText: { color: colours.gold, fontSize: 9, fontWeight: '900' },
+  chartCard: { marginTop: 9, minHeight: 230 }, chartTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }, chartValue: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 3 }, chartAddButton: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 34, minWidth: 64, alignItems: 'center', justifyContent: 'center' }, chartAdd: { color: colours.gold, fontSize: 9, fontWeight: '900' },
+  chartWrap: { marginTop: 8 }, plot: { position: 'relative', width: '100%' }, gridRow: { position: 'absolute', left: 0, right: 0, height: 1, flexDirection: 'row', alignItems: 'center' }, axisValue: { width: 29, color: colours.muted, fontSize: 7, fontWeight: '800', textAlign: 'right', marginRight: 5 }, gridLine: { flex: 1, height: 1, backgroundColor: colours.border, opacity: 0.55 }, chartLine: { position: 'absolute', height: 2, backgroundColor: colours.gold, borderRadius: 1 }, pointHit: { position: 'absolute', width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }, chartPoint: { width: 8, height: 8, borderRadius: 4, backgroundColor: colours.gold, borderWidth: 1, borderColor: colours.background }, chartPointSelected: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colours.white }, xLabel: { position: 'absolute', width: 44, color: colours.muted, fontSize: 6, fontWeight: '800', textAlign: 'center' }, valueBubble: { position: 'absolute', minWidth: 60, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 7, backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.gold, alignItems: 'center' }, valueBubbleText: { color: colours.white, fontSize: 8, fontWeight: '900' },
 });
