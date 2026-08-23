@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.35 - 2026-08-23
+
+- Added age-gated school linking for users aged 13–19, with subscribed-school selection, read-only school calendars and school-driven Term Time / Holiday status.
+- Added Sherborne School and Marlborough College as initial subscribed schools and added the school-admin calendar editor to the development backlog.
+- Added the Exercise Library `MY EQUIPMENT` filter using each user's saved equipment preferences.
+- Fixed exercise favourite persistence, restored activity removal from Today, corrected Comeback Minutes to use live activity data, and made the Year target line render reliably on iPhone.
+
 ## 0.1.34 - 2026-08-23
 
 - Restored the POC Strength Exercise Library with RepDB illustrations, swipeable exercise positions and technique details.
