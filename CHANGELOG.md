@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.24 - 2026-08-23
+
+- Changed date-of-birth entry and display to UK `DD-MM-YYYY` format while continuing to store ISO dates in Supabase.
+- Added a shared up/down chevron component as the standard app convention for collapsed and expanded controls.
+- Routed Stats & Measurements to a corrected POC-style screen using the shared chevrons and compact gold-outline `+ ADD` buttons modelled on the BACK control.
+- Added a visible Hit My Protein entry under Secret Nerd Stuff with a persistent enable/disable switch.
+- Added DOB-aware protein goal choices: adult users can choose Stay Active, Build Muscle, or Lose Fat / Keep Muscle; under-18 users instead see Stay Active, Training & Recovery, or Build Strength & Muscle, with no weight-loss goal.
+- Added one-page protein goal explanations with recommended g/kg values, bounded advanced multiplier controls, and Reset to Recommended.
+- Kept Hit My Protein as a calculator/reference feature only; no food logging was introduced.
+- Added a separate development backlog item for QR-based friend invitations with no global user search and invite-only group membership.
+
 ## 0.1.22 - 2026-08-23
 
 - Added date of birth as a required field when creating a new account, with basic past-date validation.
