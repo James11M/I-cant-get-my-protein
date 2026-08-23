@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 
 import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
+import { CardAction } from '@/components/CardAction';
 import { Screen } from '@/components/Screen';
+import { getLinkedSchool } from '@/features/schools/school.service';
 import { supabase } from '@/lib/supabase';
 import { colours } from '@/theme/colours';
 
@@ -13,6 +15,7 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
+  const [linkedSchool, setLinkedSchool] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -24,10 +27,14 @@ export default function ProfileScreen() {
       const user = userData.user;
       if (!user || !live) return;
       setEmail(user.email || '');
-      const { data } = await supabase.from('profiles').select('display_name,date_of_birth').eq('id', user.id).single();
+      const [{ data }, school] = await Promise.all([
+        supabase.from('profiles').select('display_name,date_of_birth').eq('id', user.id).single(),
+        getLinkedSchool().catch(() => ({ school: null, calendar: [] })),
+      ]);
       if (!live || !data) return;
       setDisplayName(data.display_name || '');
       setDateOfBirth(isoDateToUk(data.date_of_birth || ''));
+      setLinkedSchool(school.school?.name || '');
     }
     load().catch(() => { if (live) setMessage('Could not load profile.'); });
     return () => { live = false; };
@@ -35,6 +42,8 @@ export default function ProfileScreen() {
 
   const isoDob = ukDateToIso(dateOfBirth);
   const validDob = Boolean(isoDob);
+  const age = useMemo(() => isoDob ? ageFromIsoDate(isoDob) : null, [isoDob]);
+  const schoolLinkEligible = age !== null && age >= 13 && age <= 19;
 
   async function save() {
     if (!supabase || !isoDob) return;
@@ -46,10 +55,7 @@ export default function ProfileScreen() {
       setMessage('Could not find your account.');
       return;
     }
-    const { error } = await supabase.from('profiles').update({
-      display_name: displayName.trim(),
-      date_of_birth: isoDob,
-    }).eq('id', userData.user.id);
+    const { error } = await supabase.from('profiles').update({ display_name: displayName.trim(), date_of_birth: isoDob }).eq('id', userData.user.id);
     setBusy(false);
     setMessage(error ? error.message : 'Profile saved.');
   }
@@ -69,15 +75,7 @@ export default function ProfileScreen() {
         <TextInput value={displayName} onChangeText={setDisplayName} placeholder="Display name" placeholderTextColor={colours.muted} style={styles.input} />
 
         <Text style={styles.label}>DATE OF BIRTH</Text>
-        <TextInput
-          value={dateOfBirth}
-          onChangeText={setDateOfBirth}
-          placeholder="DD-MM-YYYY"
-          placeholderTextColor={colours.muted}
-          keyboardType="numbers-and-punctuation"
-          maxLength={10}
-          style={styles.input}
-        />
+        <TextInput value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="DD-MM-YYYY" placeholderTextColor={colours.muted} keyboardType="numbers-and-punctuation" maxLength={10} style={styles.input} />
         {dateOfBirth && !validDob ? <Text style={styles.validation}>Enter a valid past date as DD-MM-YYYY.</Text> : null}
 
         {message ? <Text style={styles.message}>{message}</Text> : null}
@@ -85,6 +83,19 @@ export default function ProfileScreen() {
           <Text style={styles.buttonText}>{busy ? 'SAVING…' : 'SAVE PROFILE'}</Text>
         </Pressable>
       </Card>
+
+      {schoolLinkEligible ? (
+        <Pressable style={styles.schoolPress} onPress={() => router.push('/(app)/school-link')}>
+          <Card style={styles.schoolCard}>
+            <View style={styles.schoolHeader}>
+              <Text style={styles.schoolLabel}>LINK TO MY SCHOOL</Text>
+              <CardAction colour={colours.gold} />
+            </View>
+            <Text style={styles.schoolTitle}>{linkedSchool || 'Choose your school'}</Text>
+            <Text style={styles.schoolMeta}>{linkedSchool ? 'School term dates are controlled by your linked school.' : 'Available for users aged 13–19 at subscribed schools.'}</Text>
+          </Card>
+        </Pressable>
+      ) : null}
     </Screen>
   );
 }
@@ -106,6 +117,14 @@ function ukDateToIso(value: string) {
   return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+function ageFromIsoDate(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) age -= 1;
+  return age;
+}
+
 const styles = StyleSheet.create({
   title: { color: colours.white, fontSize: 30, lineHeight: 34, fontWeight: '900' },
   subtitle: { color: colours.muted, fontSize: 11, lineHeight: 16, marginTop: 5, marginBottom: 17 },
@@ -117,4 +136,10 @@ const styles = StyleSheet.create({
   button: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', marginTop: 14 },
   buttonText: { color: colours.background, fontWeight: '900', fontSize: 10 },
   disabled: { opacity: 0.4 },
+  schoolPress: { marginTop: 12 },
+  schoolCard: { borderColor: colours.gold, backgroundColor: colours.card2 },
+  schoolHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  schoolLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
+  schoolTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 6 },
+  schoolMeta: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 4 },
 });
