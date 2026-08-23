@@ -13,10 +13,10 @@ import { DEFAULT_EQUIPMENT, EquipmentPreferences, getEquipmentPreferences, getEx
 import { loadVisualExercises, VisualExercise } from '@/features/exercises/repdb';
 import { colours } from '@/theme/colours';
 
-type Selector = 'all' | 'favourites' | ExerciseDefinition['equipment'];
+type Selector = 'all' | 'favourites' | 'my_equipment' | ExerciseDefinition['equipment'];
 
 const SELECTORS: Array<[Selector, string]> = [
-  ['all', 'ALL'], ['favourites', '★ FAVOURITES'], ['bodyweight', 'BODYWEIGHT'], ['dumbbell', 'DUMBBELLS'], ['kettlebell', 'KETTLEBELLS'], ['homegym', 'HOME KIT'], ['fullgym', 'FULL GYM'],
+  ['all', 'ALL'], ['favourites', '★ FAVOURITES'], ['my_equipment', 'MY EQUIPMENT'], ['bodyweight', 'BODYWEIGHT'], ['dumbbell', 'DUMBBELLS'], ['kettlebell', 'KETTLEBELLS'], ['homegym', 'HOME KIT'], ['fullgym', 'FULL GYM'],
 ];
 const EQUIPMENT: Array<[keyof EquipmentPreferences, string]> = [
   ['bodyweight', 'Bodyweight'], ['dumbbell', 'Dumbbells'], ['kettlebell', 'Kettlebells'], ['homegym', 'Home Kit'], ['fullgym', 'Full Gym'],
@@ -54,9 +54,12 @@ export default function ExerciseLibraryScreen() {
 
   const availableLabels = EQUIPMENT.filter(([key]) => equipment[key]).map(([, label]) => label);
   const visible = useMemo(() => exercises.filter((exercise) => {
-    const selectorMatch = selector === 'all' || (selector === 'favourites' && favourites.includes(exercise.id)) || exercise.equipment === selector;
+    const selectorMatch = selector === 'all'
+      || (selector === 'favourites' && favourites.includes(exercise.id))
+      || (selector === 'my_equipment' && equipment[exercise.equipment])
+      || exercise.equipment === selector;
     return selectorMatch && exercise.name.toLowerCase().includes(query.trim().toLowerCase());
-  }), [exercises, favourites, query, selector]);
+  }), [equipment, exercises, favourites, query, selector]);
 
   async function toggleFavourite(id: string) {
     const next = !favourites.includes(id);
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
   warning: { color: colours.muted, fontSize: 9, marginBottom: 8 },
   exerciseCard: { borderWidth: 1, borderColor: colours.border, borderRadius: 13, backgroundColor: colours.card, marginBottom: 10, overflow: 'hidden' },
   exerciseMain: { minHeight: 112, flexDirection: 'row', alignItems: 'center', padding: 12 },
-  thumb: { width: 96, height: 88, borderRadius: 10, overflow: 'hidden', backgroundColor: colours.card2, marginRight: 12 },
+  thumb: { width: 96, height: 92, borderRadius: 10, overflow: 'hidden', backgroundColor: colours.card2, marginRight: 12 },
   exerciseTitle: { color: colours.white, fontSize: 16, lineHeight: 20, fontWeight: '900' },
   equipmentPill: { alignSelf: 'flex-start', backgroundColor: colours.card2, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, marginTop: 5 },
   equipmentPillText: { color: colours.gold, fontSize: 8, fontWeight: '900' },
