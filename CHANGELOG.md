@@ -2,7 +2,7 @@
 
 ## 0.1.46 - 2026-08-23
 
-- Added private user-created Teams with five-minute six-digit invite codes, team-specific leaderboard filters and invite-only membership.
+- Added private user-created Teams with persistent six-digit invite codes, owner-approved join requests and team-specific leaderboard filters.
 - Made Leader competition tabs contextual: School requires a linked school and Houses additionally requires the school's intra-house competition setting.
 - Replaced demo Friend leaderboard rows with live friend XP and Level data and moved Add Friend / Add Team actions below leaderboard content.
 
