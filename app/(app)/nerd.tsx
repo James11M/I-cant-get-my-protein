@@ -7,6 +7,7 @@ import { Screen } from '@/components/Screen';
 import { colours } from '@/theme/colours';
 
 const LINKS = [
+  ['👤', 'PROFILE & ACCOUNT', 'Email, display name and date of birth.', 'profile'],
   ['🏋️', 'EXERCISE LIBRARY', 'Exercises, equipment and custom exercises.', 'exercise-library'],
   ['🏉', 'SPORTS & ACTIVITIES', 'Review the activity library and add your own.', 'sports'],
   ['⏱️', 'EXERCISE TIMING', 'Rep pace, rest and duration assumptions.', 'timing'],
@@ -24,7 +25,7 @@ export default function NerdScreen() {
         <Text style={styles.title}>Secret Nerd Stuff</Text>
         <View style={styles.list}>
           {LINKS.map(([emoji, title, text, section]) => (
-            <Pressable key={title} style={styles.link} onPress={() => router.push({ pathname: '/(app)/settings/[section]', params: { section } })}>
+            <Pressable key={title} style={styles.link} onPress={() => section === 'profile' ? router.push('/(app)/profile') : router.push({ pathname: '/(app)/settings/[section]', params: { section } })}>
               <Text style={styles.emoji}>{emoji}</Text>
               <View style={styles.copy}>
                 <Text style={styles.linkTitle}>{title}</Text>
