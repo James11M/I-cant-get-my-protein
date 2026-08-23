@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { AwardsPanel } from '@/components/AwardsPanel';
 import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
@@ -18,10 +19,6 @@ const LEADERBOARD: Record<Group, [string, number, boolean?][]> = {
   Houses: [['School House',86],['Wallace',82],['Abbey',77],['The Green',71]],
   Schools: [['School A',88],['School B',84],['School C',79],['School D',74]],
 };
-const AWARDS = [
-  ['🔥','Threepeat','3-day streak'], ['🏊','Old-School Mile','1,500 m swim'], ['🏃','Five Alive','5 km run'],
-  ['🏉','Hard Yards','1,000 rugby min'], ['🏋️','Rep Rookie','5 strength sessions'], ['↻','Sunday Saver','Complete a comeback'],
-] as const;
 const WEIGHT_ENTRIES: ChartEntry[] = [
   { date: '02 AUG', value: 70.5 },
   { date: '07 AUG', value: 70.2 },
@@ -45,7 +42,7 @@ export default function LeadersScreen() {
         </View>
         <View style={styles.body}>
           {mode === 'leaders' ? <Leaderboard group={group} setGroup={setGroup} /> : null}
-          {mode === 'awards' ? <Awards /> : null}
+          {mode === 'awards' ? <AwardsPanel /> : null}
           {mode === 'stats' ? <Stats /> : null}
         </View>
       </ScrollView>
@@ -69,14 +66,6 @@ function Leaderboard({ group, setGroup }: { group: Group; setGroup: (value: Grou
       <Text style={styles.leaderXp}>{value.toLocaleString()}{percentageGroup ? '%' : ' XP'}</Text>
     </Card>)}</View>
   </>;
-}
-
-function Awards() {
-  return <View style={styles.awardsGrid}>{AWARDS.map(([emoji, title, text]) => <Card key={title} style={styles.awardCard}>
-    <View style={styles.awardIcon}><Text style={styles.awardEmoji}>{emoji}</Text></View>
-    <Text style={styles.awardTitle}>{title}</Text>
-    <Text style={styles.awardText}>{text}</Text>
-  </Card>)}</View>;
 }
 
 function Stats() {
@@ -147,7 +136,6 @@ const styles = StyleSheet.create({
   groups: { flexDirection: 'row', gap: 6, marginBottom: 11 }, groupPill: { flex: 1, minHeight: 30, borderRadius: 15, backgroundColor: colours.card2, borderWidth: 1, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' }, groupPillActive: { borderColor: colours.gold }, groupText: { color: colours.muted, fontSize: 8, fontWeight: '900' }, groupTextActive: { color: colours.gold },
   addFriendButton: { marginBottom: 11 },
   leaderList: { gap: 8 }, leaderCard: { minHeight: 61, paddingVertical: 11, flexDirection: 'row', alignItems: 'center' }, youCard: { borderColor: colours.gold }, rank: { color: colours.gold, fontSize: 20, fontWeight: '900', width: 31 }, leaderCopy: { flex: 1 }, leaderName: { color: colours.white, fontSize: 13, fontWeight: '900' }, leaderXp: { color: colours.white, fontSize: 11, fontWeight: '900' },
-  awardsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 9 }, awardCard: { width: '48%', minHeight: 139, alignItems: 'center', justifyContent: 'center', padding: 10 }, awardIcon: { width: 53, height: 53, borderRadius: 27, borderWidth: 2, borderColor: colours.gold, alignItems: 'center', justifyContent: 'center' }, awardEmoji: { fontSize: 25 }, awardTitle: { color: colours.white, fontSize: 11, fontWeight: '900', textAlign: 'center', marginTop: 9 }, awardText: { color: colours.muted, fontSize: 8, fontWeight: '700', textAlign: 'center', marginTop: 4 },
   sectionLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginBottom: 8 }, statsRow: { flexDirection: 'row', gap: 9 }, statCard: { flex: 1, minHeight: 139, padding: 12 }, statLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 }, statValue: { color: colours.white, fontSize: 24, fontWeight: '900', marginTop: 6 }, statUnit: { fontSize: 12 }, statGoal: { color: colours.muted, fontSize: 8, fontWeight: '800', marginTop: 3 }, smallAdd: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 36, alignItems: 'center', justifyContent: 'center', marginTop: 11 }, smallAddText: { color: colours.gold, fontSize: 9, fontWeight: '900' },
   chartCard: { marginTop: 9, minHeight: 230 }, chartTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }, chartValue: { color: colours.white, fontSize: 14, fontWeight: '900', marginTop: 3 }, chartAddButton: { borderWidth: 1, borderColor: colours.gold, borderRadius: 8, minHeight: 34, minWidth: 64, alignItems: 'center', justifyContent: 'center' }, chartAdd: { color: colours.gold, fontSize: 9, fontWeight: '900' },
   chartWrap: { marginTop: 8 }, plot: { position: 'relative', width: '100%' }, gridRow: { position: 'absolute', left: 0, right: 0, height: 1, flexDirection: 'row', alignItems: 'center' }, axisValue: { width: 29, color: colours.muted, fontSize: 7, fontWeight: '800', textAlign: 'right', marginRight: 5 }, gridLine: { flex: 1, height: 1, backgroundColor: colours.border, opacity: 0.55 }, chartLine: { position: 'absolute', height: 2, backgroundColor: colours.gold, borderRadius: 1 }, pointHit: { position: 'absolute', width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }, chartPoint: { width: 8, height: 8, borderRadius: 4, backgroundColor: colours.gold, borderWidth: 1, borderColor: colours.background }, chartPointSelected: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colours.white }, xLabel: { position: 'absolute', width: 44, color: colours.muted, fontSize: 6, fontWeight: '800', textAlign: 'center' }, valueBubble: { position: 'absolute', minWidth: 60, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 7, backgroundColor: colours.card2, borderWidth: 1, borderColor: colours.gold, alignItems: 'center' }, valueBubbleText: { color: colours.white, fontSize: 8, fontWeight: '900' },
