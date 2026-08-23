@@ -105,7 +105,7 @@ export default function HomeScreen() {
                   <Text style={styles.proteinValue}>{!protein.goal ? 'SET YOUR GOAL' : !protein.weight ? 'ADD YOUR WEIGHT' : `${proteinTarget}g`}</Text>
                   <Text style={styles.proteinMeta}>{proteinTarget ? `${protein.weight} kg × ${proteinMultiplier?.toFixed(1)} g/kg • daily target` : !protein.goal ? 'Choose a protein goal to calculate your target.' : 'Add Weight in Stats & Measurements to calculate your target.'}</Text>
                 </View>
-                <Text style={styles.proteinView}>VIEW →</Text>
+                <View style={styles.proteinViewButton}><Text style={styles.proteinViewText}>VIEW →</Text></View>
               </View>
             </Card>
           </Pressable>
@@ -273,7 +273,8 @@ const styles = StyleSheet.create({
   proteinLabel: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
   proteinValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 },
   proteinMeta: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 4, paddingRight: 8 },
-  proteinView: { color: colours.gold, fontSize: 9, fontWeight: '900', marginLeft: 10 },
+  proteinViewButton: { minHeight: 32, minWidth: 68, borderWidth: 1, borderColor: colours.gold, borderRadius: 9, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colours.card, marginLeft: 10 },
+  proteinViewText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
 
   progressTrack: { height: 8, borderRadius: 4, backgroundColor: colours.card2, overflow: 'hidden', marginTop: 11 },
   progressFill: { height: '100%', backgroundColor: colours.gold },
