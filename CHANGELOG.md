@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.33 - 2026-08-23
+
+- Added one-tap 15, 30, 45, 60, 75 and 90 minute choices to Log Activity; choosing a quick duration saves immediately and returns to Home.
+- Kept manual duration entry available and show an inline `LOG ACTIVITY` action only after a custom value is entered.
+- Removed the Training Credit panel from Log Activity to keep the flow focused on recording what was done.
+- Added a shared `PrimaryActionButton` with larger, more readable text and applied it to primary gold actions on the activity flow and Home Add Training.
+- Moved Home card `VIEW →` actions into the same top title row as the card heading, preserving the shared accent-colour `CardAction` treatment.
+- Renamed Weekly Comeback to `Comeback Minutes` on Home and its detail page.
+- Reordered Comeback Minutes so Last 7 Days is shown first and moved the explanation, calculation summary and Consistency block into a bottom `HOW IT WORKS` show/hide card using the shared chevron convention.
+- Included queued Hit My Protein polish: shortened `recommended` to `rec.` and changed the selected goal treatment from info blue to solid gold with dark contrast text.
+- Corrected the shared CardAction component location under `src/components` so the `@/components/CardAction` alias resolves correctly in Expo.
+
 ## 0.1.32 - 2026-08-23
 
 - Standardised card-level `VIEW →` actions as a reusable `CardAction` component.
