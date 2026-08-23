@@ -45,6 +45,13 @@ type NewSimpleActivityLog = {
   performedAt?: string;
 };
 
+type CustomActivityInput = {
+  name: string;
+  icon: string;
+};
+
+const ACTIVITY_FIELDS = 'id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system';
+
 export function calculateActivityCredit(activity: Activity, amount: number, minutes: number) {
   if (activity.training_type === 'Recovery') return 0;
   const target = Number(activity.default_target || 0);
@@ -53,18 +60,75 @@ export function calculateActivityCredit(activity: Activity, amount: number, minu
   return (amount / target) * 30;
 }
 
-export async function getActivities(): Promise<Activity[]> {
+export async function getAllActivities(): Promise<Activity[]> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase.from('activities').select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system').order('is_system', { ascending: false }).order('name');
+  const { data, error } = await supabase.from('activities').select(ACTIVITY_FIELDS).order('is_system', { ascending: false }).order('name');
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as Activity[];
+}
+
+export async function getHiddenActivityIds(): Promise<string[]> {
+  if (!supabase) return [];
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return [];
+  const { data, error } = await supabase.from('activity_visibility_preferences').select('activity_id').eq('user_id', userData.user.id).eq('hidden', true);
+  if (error) throw error;
+  return (data ?? []).map((row) => String(row.activity_id));
+}
+
+export async function getActivities(): Promise<Activity[]> {
+  const [activities, hidden] = await Promise.all([getAllActivities(), getHiddenActivityIds()]);
+  const hiddenSet = new Set(hidden);
+  return activities.filter((activity) => !hiddenSet.has(activity.id));
 }
 
 export async function getActivity(activityId: string): Promise<Activity> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase.from('activities').select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system').eq('id', activityId).single();
+  const { data, error } = await supabase.from('activities').select(ACTIVITY_FIELDS).eq('id', activityId).single();
   if (error) throw error;
-  return data;
+  return data as Activity;
+}
+
+export async function createCustomActivity(input: CustomActivityInput): Promise<Activity> {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('You must be signed in.');
+  const { data, error } = await supabase.from('activities').insert({
+    name: input.name.trim(),
+    icon: input.icon.trim() || '⭐',
+    category: 'Sport',
+    training_type: 'Sport',
+    measure_type: 'time',
+    unit: 'min',
+    default_target: 30,
+    default_minutes: 30,
+    owner_user_id: userData.user.id,
+    organisation_id: null,
+    is_system: false,
+  }).select(ACTIVITY_FIELDS).single();
+  if (error) throw error;
+  return data as Activity;
+}
+
+export async function updateOwnActivity(activityId: string, input: CustomActivityInput) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('You must be signed in.');
+  const { error } = await supabase.from('activities').update({ name: input.name.trim(), icon: input.icon.trim() || '⭐' }).eq('id', activityId).eq('owner_user_id', userData.user.id).eq('is_system', false);
+  if (error) throw error;
+}
+
+export async function setActivityHidden(activityId: string, hidden: boolean) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('You must be signed in.');
+  if (hidden) {
+    const { error } = await supabase.from('activity_visibility_preferences').upsert({ user_id: userData.user.id, activity_id: activityId, hidden: true, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    return;
+  }
+  const { error } = await supabase.from('activity_visibility_preferences').delete().eq('user_id', userData.user.id).eq('activity_id', activityId);
+  if (error) throw error;
 }
 
 export async function getFavouriteActivityIds(userId: string): Promise<string[]> {
