@@ -5,6 +5,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { BottomNav } from '@/components/BottomNav';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
+import { CardAction } from '@/components/CardAction';
 import { ProgressRing } from '@/components/ProgressRing';
 import { Screen } from '@/components/Screen';
 import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
@@ -116,7 +117,7 @@ export default function HomeScreen() {
                     </>
                   )}
                 </View>
-                <View style={styles.proteinViewButton}><Text style={styles.proteinViewText}>VIEW →</Text></View>
+                <CardAction colour={colours.gold} />
               </View>
             </Card>
           </Pressable>
@@ -176,7 +177,7 @@ export default function HomeScreen() {
           <Card style={styles.comebackCard}>
             <View style={styles.rowBetween}>
               <View style={styles.inline}><Text style={styles.comebackIcon}>↻</Text><Text style={styles.comebackLabel}>WEEKLY COMEBACK</Text></View>
-              <Text style={styles.open}>VIEW →</Text>
+              <CardAction colour={colours.purple} />
             </View>
             <Text style={styles.comebackTitle}>{Math.round(comeback.missing)} missing minutes</Text>
           </Card>
@@ -294,8 +295,6 @@ const styles = StyleSheet.create({
   proteinValue: { color: colours.white, fontSize: 22, fontWeight: '900', marginTop: 4 },
   proteinTarget: { color: colours.gold, fontSize: 12, fontWeight: '900', marginTop: 5 },
   proteinMeta: { color: colours.muted, fontSize: 8, lineHeight: 13, marginTop: 4, paddingRight: 8 },
-  proteinViewButton: { minHeight: 32, minWidth: 68, borderWidth: 1, borderColor: colours.gold, borderRadius: 9, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colours.card, marginLeft: 10 },
-  proteinViewText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
 
   progressTrack: { height: 8, borderRadius: 4, backgroundColor: colours.card2, overflow: 'hidden', marginTop: 11 },
   progressFill: { height: '100%', backgroundColor: colours.gold },
@@ -340,6 +339,5 @@ const styles = StyleSheet.create({
   inline: { flexDirection: 'row', alignItems: 'center' },
   comebackIcon: { color: colours.purple, fontSize: 20, fontWeight: '900', marginRight: 7 },
   comebackLabel: { color: colours.purple, fontSize: 9, fontWeight: '900' },
-  open: { color: colours.purple, fontSize: 9, fontWeight: '900' },
   comebackTitle: { color: colours.white, fontSize: 18, fontWeight: '900', marginTop: 7 },
 });
