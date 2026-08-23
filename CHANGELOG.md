@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.44 - 2026-08-23
+
+- Rebuilt Awards as a data-driven badge system with group filters, earned dates and full-screen badge detail views.
+- Added Swimming single-session and lifetime distance badge families, plus initial Running, Rugby and Strength sequences derived from activity history.
+
 ## 0.1.43 - 2026-08-23
 
 - Added interactive Month History date states and tap-through daily activity breakdowns.
