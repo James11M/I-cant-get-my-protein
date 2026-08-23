@@ -21,6 +21,7 @@ export function ExerciseVisual({ exercise, compact = false }: { exercise: Visual
     return <Image source={{ uri: images[0] }} resizeMode="contain" style={styles.image} />;
   }
 
+  const imageHeight = compact ? 72 : 285;
   return (
     <View style={styles.fill} onLayout={(event) => {
       const measured = event.nativeEvent.layout.width;
@@ -30,10 +31,11 @@ export function ExerciseVisual({ exercise, compact = false }: { exercise: Visual
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        style={{ height: imageHeight }}
         onMomentumScrollEnd={(event) => setActiveIndex(Math.round(event.nativeEvent.contentOffset.x / width))}
       >
         {images.map((uri, index) => (
-          <View key={`${uri}-${index}`} style={{ width, height: compact ? 82 : 285 }}>
+          <View key={`${uri}-${index}`} style={{ width, height: imageHeight }}>
             <Image source={{ uri }} resizeMode="contain" style={styles.image} />
           </View>
         ))}
@@ -46,13 +48,13 @@ export function ExerciseVisual({ exercise, compact = false }: { exercise: Visual
 }
 
 const styles = StyleSheet.create({
-  fill: { width: '100%', height: '100%' },
+  fill: { width: '100%', height: '100%', justifyContent: 'flex-start' },
   image: { width: '100%', height: '100%' },
   fallback: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: colours.card2 },
   fallbackSmall: { fontSize: 30 },
   fallbackLarge: { fontSize: 72 },
-  dots: { position: 'absolute', bottom: 8, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  dotsCompact: { position: 'absolute', bottom: 2, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 4 },
+  dots: { height: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  dotsCompact: { height: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
   dotSmall: { width: 6, height: 6, borderRadius: 3, borderWidth: 1 },
   dotOn: { backgroundColor: colours.gold, borderColor: colours.gold },
