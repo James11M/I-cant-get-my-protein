@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.30 - 2026-08-23
+
+- Made the currently selected Hit My Protein goal visually unmistakable with a solid info-blue card treatment and a `SELECTED` marker.
+- Kept the recommended multiplier in gold and any user override in white on the selected goal card.
+- Updated the Home Hit My Protein card so a fully configured user sees their selected goal as the main white title, using the same 23px / 900-weight treatment as the Home Level title.
+- Moved the calculated protein target beneath the goal title in gold, followed by the weight × multiplier calculation.
+
 ## 0.1.29 - 2026-08-23
 
 - Added the active advanced protein multiplier to the selected Hit My Protein goal card when a user has overridden the recommended value.
