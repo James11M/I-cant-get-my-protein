@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
 export type LeaderRow = { user_id: string; display_name: string; xp: number; level: number; is_you: boolean };
-export type TeamSummary = { team_id: string; team_name: string; member_count: number };
+export type TeamSummary = { team_id: string; team_name: string; member_count: number; is_owner: boolean; invite_code: string | null };
+export type TeamJoinRequest = { user_id: string; display_name: string; requested_at: string };
 export type LeaderContext = { linked_school_id: string | null; school_name: string | null; houses_enabled: boolean };
 export type HouseRow = { house_name: string; xp: number };
 
@@ -35,7 +36,7 @@ export async function getHouseLeaderboard(): Promise<HouseRow[]> {
 export async function getMyTeams(): Promise<TeamSummary[]> {
   const { data, error } = await needSupabase().rpc('get_my_teams');
   if (error) throw error;
-  return (data || []).map((row: any) => ({ team_id: String(row.team_id), team_name: String(row.team_name), member_count: Number(row.member_count || 0) }));
+  return (data || []).map((row: any) => ({ team_id: String(row.team_id), team_name: String(row.team_name), member_count: Number(row.member_count || 0), is_owner: Boolean(row.is_owner), invite_code: row.invite_code ? String(row.invite_code) : null }));
 }
 
 export async function getTeamLeaderboard(teamId: string): Promise<LeaderRow[]> {
@@ -50,18 +51,34 @@ export async function createTeam(name: string): Promise<string> {
   return String(data);
 }
 
-export async function createTeamCode(teamId: string) {
-  const { data, error } = await needSupabase().rpc('create_team_code', { input_team_id: teamId });
+export async function ensureTeamCode(teamId: string) {
+  const { data, error } = await needSupabase().rpc('ensure_team_invite_code', { input_team_id: teamId });
   if (error) throw error;
-  const row = Array.isArray(data) ? data[0] : data;
-  return { code: String(row.code), expires_at: String(row.expires_at) };
+  return String(data);
 }
 
-export async function acceptTeamCode(code: string) {
-  const { data, error } = await needSupabase().rpc('accept_team_code', { input_code: code });
+export async function regenerateTeamCode(teamId: string) {
+  const { data, error } = await needSupabase().rpc('regenerate_team_invite_code', { input_team_id: teamId });
+  if (error) throw error;
+  return String(data);
+}
+
+export async function requestTeamJoin(code: string) {
+  const { data, error } = await needSupabase().rpc('request_team_join', { input_code: code });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
-  return row ? { team_id: String(row.team_id), team_name: String(row.team_name) } : null;
+  return row ? { team_id: String(row.team_id), team_name: String(row.team_name), request_status: String(row.request_status) } : null;
+}
+
+export async function getTeamJoinRequests(teamId: string): Promise<TeamJoinRequest[]> {
+  const { data, error } = await needSupabase().rpc('get_team_join_requests', { input_team_id: teamId });
+  if (error) throw error;
+  return (data || []).map((row: any) => ({ user_id: String(row.user_id), display_name: String(row.display_name || 'User'), requested_at: String(row.requested_at) }));
+}
+
+export async function decideTeamJoinRequest(teamId: string, userId: string, accept: boolean) {
+  const { error } = await needSupabase().rpc('decide_team_join_request', { input_team_id: teamId, input_user_id: userId, input_accept: accept });
+  if (error) throw error;
 }
 
 export async function leaveTeam(teamId: string) {
