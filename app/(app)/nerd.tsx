@@ -24,6 +24,7 @@ export default function NerdScreen() {
     if (section === 'protein') return router.push('/(app)/protein');
     if (section === 'exercise-library') return router.push('/(app)/exercise-library');
     if (section === 'sports') return router.push('/(app)/sports-settings');
+    if (section === 'targets') return router.push('/(app)/targets');
     if (section === 'measurements') return router.push('/(app)/measurements');
     if (section === 'term-dates') return router.push('/(app)/school-term-dates');
     return router.push({ pathname: '/(app)/settings/[section]', params: { section } });
