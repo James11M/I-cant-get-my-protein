@@ -28,6 +28,7 @@ export default function ProteinSetupScreen() {
   const [enabled, setEnabled] = useState(false);
   const [dob, setDob] = useState<string | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<GoalKey | null>(null);
+  const [override, setOverride] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -37,12 +38,13 @@ export default function ProteinSetupScreen() {
       if (!supabase) return;
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
-      const { data, error } = await supabase.from('profiles').select('date_of_birth,protein_enabled,protein_goal').eq('id', userData.user.id).single();
+      const { data, error } = await supabase.from('profiles').select('date_of_birth,protein_enabled,protein_goal,protein_multiplier_override').eq('id', userData.user.id).single();
       if (!live) return;
       if (error || !data) { setMessage('Could not load Hit My Protein settings.'); return; }
       setDob(data.date_of_birth || null);
       setEnabled(Boolean(data.protein_enabled));
       setSelectedGoal((data.protein_goal as GoalKey | null) || null);
+      setOverride(data.protein_multiplier_override == null ? null : Number(data.protein_multiplier_override));
     }
     load().catch(() => { if (live) setMessage('Could not load Hit My Protein settings.'); });
     return () => { live = false; };
@@ -95,16 +97,22 @@ export default function ProteinSetupScreen() {
       {enabled && dob ? (
         <>
           <Text style={styles.sectionTitle}>{under18 ? 'CHOOSE YOUR GOAL • UNDER 18' : 'CHOOSE YOUR GOAL'}</Text>
-          {goals.map((goal) => (
-            <Pressable key={goal.key} style={[styles.goalCard, selectedGoal === goal.key && styles.goalCardSelected]} onPress={() => router.push({ pathname: '/(app)/protein-goal', params: { goal: goal.key } })}>
-              <View style={styles.flex}>
-                <Text style={styles.goalTitle}>{goal.title}</Text>
-                <Text style={styles.goalText}>{goal.description}</Text>
-                <Text style={styles.goalRate}>{goal.multiplier.toFixed(1)} g/kg recommended</Text>
-              </View>
-              <Text style={styles.arrow}>→</Text>
-            </Pressable>
-          ))}
+          {goals.map((goal) => {
+            const selected = selectedGoal === goal.key;
+            return (
+              <Pressable key={goal.key} style={[styles.goalCard, selected && styles.goalCardSelected]} onPress={() => router.push({ pathname: '/(app)/protein-goal', params: { goal: goal.key } })}>
+                <View style={styles.flex}>
+                  <Text style={styles.goalTitle}>{goal.title}</Text>
+                  <Text style={styles.goalText}>{goal.description}</Text>
+                  <View style={styles.rateRow}>
+                    <Text style={styles.goalRate}>{goal.multiplier.toFixed(1)} g/kg recommended</Text>
+                    {selected && override !== null ? <Text style={styles.userRate}>{override.toFixed(1)} g/kg set by user</Text> : null}
+                  </View>
+                </View>
+                <Text style={styles.arrow}>→</Text>
+              </Pressable>
+            );
+          })}
           {under18 ? <Text style={styles.note}>Weight-loss goals are not offered to users under 18.</Text> : null}
         </>
       ) : null}
@@ -146,7 +154,9 @@ const styles = StyleSheet.create({
   goalCardSelected: { borderWidth: 2 },
   goalTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
   goalText: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 4, paddingRight: 8 },
-  goalRate: { color: colours.gold, fontSize: 9, fontWeight: '900', marginTop: 5 },
+  rateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 5, paddingRight: 8 },
+  goalRate: { color: colours.gold, fontSize: 9, fontWeight: '900' },
+  userRate: { color: colours.white, fontSize: 9, fontWeight: '900', marginLeft: 10 },
   arrow: { color: colours.gold, fontSize: 27, lineHeight: 29, marginLeft: 8 },
   note: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 2, marginBottom: 10 },
   message: { color: colours.gold, fontSize: 9, lineHeight: 14, marginTop: 8 },
