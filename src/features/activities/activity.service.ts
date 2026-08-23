@@ -114,3 +114,9 @@ export async function getActivityLogs(): Promise<ActivityLog[]> {
   if (error) throw error;
   return data ?? [];
 }
+
+export async function removeActivityLog(logId: string) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('activity_logs').delete().eq('id', logId);
+  if (error) throw error;
+}
