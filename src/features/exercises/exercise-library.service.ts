@@ -30,8 +30,8 @@ export async function setExerciseFavourite(exerciseId: string, favourite: boolea
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return;
   if (favourite) {
-    const { error } = await supabase.from('exercise_favourites').upsert({ user_id: userData.user.id, exercise_id: exerciseId });
-    if (error) throw error;
+    const { error } = await supabase.from('exercise_favourites').insert({ user_id: userData.user.id, exercise_id: exerciseId });
+    if (error && error.code !== '23505') throw error;
   } else {
     const { error } = await supabase.from('exercise_favourites').delete().eq('user_id', userData.user.id).eq('exercise_id', exerciseId);
     if (error) throw error;
