@@ -1,7 +1,7 @@
 import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
 
 export type BadgeMode = 'single' | 'cumulative' | 'sessions';
-export type BadgeGroup = 'Swimming' | 'Running' | 'Rugby' | 'Strength' | 'Streaks' | 'Comeback';
+export type BadgeGroup = 'Swimming' | 'Running' | 'Rugby' | 'Strength';
 
 export type BadgeDefinition = {
   id: string;
@@ -28,8 +28,8 @@ const swimmingSingle = [200, 400, 800, 1500, 3000, 5000].map((threshold) => ({
   group: 'Swimming' as const,
   family: 'ONE SESSION',
   icon: '🏊',
-  title: threshold >= 1000 ? `${formatKm(threshold)} SWIM` : `${threshold}M SWIM`,
-  description: `Swim ${threshold >= 1000 ? formatKm(threshold).toLowerCase() : `${threshold} metres`} in one session.`,
+  title: `${threshold}M SWIM`,
+  description: `Swim ${threshold.toLocaleString()} metres in one session.`,
   threshold,
   unit: 'm' as const,
   mode: 'single' as const,
@@ -110,7 +110,7 @@ export const BADGES: BadgeDefinition[] = [
   ...strengthSessions,
 ];
 
-export const BADGE_GROUPS: Array<'All' | BadgeGroup> = ['All', 'Swimming', 'Running', 'Rugby', 'Strength', 'Streaks', 'Comeback'];
+export const BADGE_GROUPS: Array<'All' | BadgeGroup> = ['All', 'Swimming', 'Running', 'Rugby', 'Strength'];
 
 export async function getEvaluatedBadges(): Promise<EvaluatedBadge[]> {
   const logs = await getActivityLogs();
