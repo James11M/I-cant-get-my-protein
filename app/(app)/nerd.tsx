@@ -8,6 +8,7 @@ import { colours } from '@/theme/colours';
 
 const LINKS = [
   ['👤', 'PROFILE & ACCOUNT', 'Email, display name and date of birth.', 'profile'],
+  ['🥚', 'HIT MY PROTEIN', 'Optional age-aware protein calculator and guidance.', 'protein'],
   ['🏋️', 'EXERCISE LIBRARY', 'Exercises, equipment and custom exercises.', 'exercise-library'],
   ['🏉', 'SPORTS & ACTIVITIES', 'Review the activity library and add your own.', 'sports'],
   ['⏱️', 'EXERCISE TIMING', 'Rep pace, rest and duration assumptions.', 'timing'],
@@ -18,6 +19,13 @@ const LINKS = [
 ] as const;
 
 export default function NerdScreen() {
+  function openSection(section: string) {
+    if (section === 'profile') return router.push('/(app)/profile');
+    if (section === 'protein') return router.push('/(app)/protein');
+    if (section === 'measurements') return router.push('/(app)/measurements');
+    return router.push({ pathname: '/(app)/settings/[section]', params: { section } });
+  }
+
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -25,7 +33,7 @@ export default function NerdScreen() {
         <Text style={styles.title}>Secret Nerd Stuff</Text>
         <View style={styles.list}>
           {LINKS.map(([emoji, title, text, section]) => (
-            <Pressable key={title} style={styles.link} onPress={() => section === 'profile' ? router.push('/(app)/profile') : router.push({ pathname: '/(app)/settings/[section]', params: { section } })}>
+            <Pressable key={title} style={styles.link} onPress={() => openSection(section)}>
               <Text style={styles.emoji}>{emoji}</Text>
               <View style={styles.copy}>
                 <Text style={styles.linkTitle}>{title}</Text>
