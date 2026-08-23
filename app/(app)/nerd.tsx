@@ -15,7 +15,7 @@ const LINKS = [
   ['📈', 'STRENGTH TRACKING', 'Best 10-Rep Weight and estimated 1RM reference.', 'strength-tracking'],
   ['🎯', 'TARGETS', 'Month, year, weight and body-fat goals.', 'targets'],
   ['◎', 'STATS & MEASUREMENTS', 'Add or remove advanced measurements from Core.', 'measurements'],
-  ['🏫', 'SCHOOL TERM DATES', 'Configure Term Time and Holiday periods.', 'term-dates'],
+  ['🏫', 'SCHOOL TERM DATES', 'View linked-school dates or manage personal term periods.', 'term-dates'],
 ] as const;
 
 export default function NerdScreen() {
@@ -24,6 +24,7 @@ export default function NerdScreen() {
     if (section === 'protein') return router.push('/(app)/protein');
     if (section === 'exercise-library') return router.push('/(app)/exercise-library');
     if (section === 'measurements') return router.push('/(app)/measurements');
+    if (section === 'term-dates') return router.push('/(app)/school-term-dates');
     return router.push({ pathname: '/(app)/settings/[section]', params: { section } });
   }
 
@@ -36,10 +37,7 @@ export default function NerdScreen() {
           {LINKS.map(([emoji, title, text, section]) => (
             <Pressable key={title} style={styles.link} onPress={() => openSection(section)}>
               <Text style={styles.emoji}>{emoji}</Text>
-              <View style={styles.copy}>
-                <Text style={styles.linkTitle}>{title}</Text>
-                <Text style={styles.linkText}>{text}</Text>
-              </View>
+              <View style={styles.copy}><Text style={styles.linkTitle}>{title}</Text><Text style={styles.linkText}>{text}</Text></View>
               <Text style={styles.arrow}>→</Text>
             </Pressable>
           ))}
