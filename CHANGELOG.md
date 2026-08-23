@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.32 - 2026-08-23
+
+- Standardised card-level `VIEW →` actions as a reusable `CardAction` component.
+- Locked the design rule to the original Weekly Comeback treatment: small bold text, top-right aligned, with the action colour matching the card outline/accent colour.
+- Reverted the Hit My Protein Home card from the temporary outlined mini-button back to the shared gold `VIEW →` treatment.
+- Updated Weekly Comeback to use the same shared component in purple so future card actions can stay visually consistent.
+
 ## 0.1.31 - 2026-08-23
 
 - Restored the dotted 80% target line on the History Year chart.
