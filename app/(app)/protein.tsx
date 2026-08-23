@@ -102,8 +102,11 @@ export default function ProteinSetupScreen() {
             return (
               <Pressable key={goal.key} style={[styles.goalCard, selected && styles.goalCardSelected]} onPress={() => router.push({ pathname: '/(app)/protein-goal', params: { goal: goal.key } })}>
                 <View style={styles.flex}>
-                  <Text style={styles.goalTitle}>{goal.title}</Text>
-                  <Text style={styles.goalText}>{goal.description}</Text>
+                  <View style={styles.goalTitleRow}>
+                    <Text style={styles.goalTitle}>{goal.title}</Text>
+                    {selected ? <Text style={styles.selectedLabel}>SELECTED</Text> : null}
+                  </View>
+                  <Text style={[styles.goalText, selected && styles.goalTextSelected]}>{goal.description}</Text>
                   <View style={styles.rateRow}>
                     <Text style={styles.goalRate}>{goal.multiplier.toFixed(1)} g/kg recommended</Text>
                     {selected && override !== null ? <Text style={styles.userRate}>{override.toFixed(1)} g/kg set by user</Text> : null}
@@ -151,9 +154,12 @@ const styles = StyleSheet.create({
   outlineText: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
   sectionTitle: { color: colours.gold, fontSize: 9, fontWeight: '900', letterSpacing: 1.0, marginBottom: 8 },
   goalCard: { minHeight: 92, borderWidth: 1, borderColor: colours.gold, borderRadius: 13, backgroundColor: colours.card, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, marginBottom: 9 },
-  goalCardSelected: { borderWidth: 2 },
+  goalCardSelected: { borderWidth: 2, backgroundColor: colours.blue },
+  goalTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 8 },
   goalTitle: { color: colours.white, fontSize: 13, fontWeight: '900' },
+  selectedLabel: { color: colours.white, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
   goalText: { color: colours.muted, fontSize: 9, lineHeight: 14, marginTop: 4, paddingRight: 8 },
+  goalTextSelected: { color: colours.white },
   rateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 5, paddingRight: 8 },
   goalRate: { color: colours.gold, fontSize: 9, fontWeight: '900' },
   userRate: { color: colours.white, fontSize: 9, fontWeight: '900', marginLeft: 10 },
