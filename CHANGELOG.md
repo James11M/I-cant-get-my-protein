@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.25 - 2026-08-23
+
+- Updated Week History so the current day is never shown as a red missed day while it is still in progress.
+- Current-day cards now use a solid gold background with dark contrast text while incomplete, and a solid green background with white text once complete.
+- Changed the current-day incomplete status from `MISSED` to `INCOMPLETE`.
+- Added a `★ TODAY` marker in the lower-right of the current-day card so it remains visually distinct from historical days.
+- Left past-day missed/partial/comeback styling and rolling 7-day recovery logic unchanged.
+
 ## 0.1.24 - 2026-08-23
 
 - Changed date-of-birth entry and display to UK `DD-MM-YYYY` format while continuing to store ISO dates in Supabase.
