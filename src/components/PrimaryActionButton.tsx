@@ -14,7 +14,7 @@ export function PrimaryActionButton({ label, onPress, disabled = false, style, v
   const danger = variant === 'danger';
   return (
     <Pressable style={[styles.button, danger && styles.dangerButton, disabled && styles.disabled, style]} onPress={onPress} disabled={disabled}>
-      <Text style={[styles.text, danger && styles.dangerText]}>{label}</Text>
+      <Text style={[styles.text, danger && styles.dangerText]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{label}</Text>
     </Pressable>
   );
 }
@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '900',
     letterSpacing: 0.8,
+    textAlign: 'center',
   },
   dangerText: { color: colours.white },
 });
