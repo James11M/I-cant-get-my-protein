@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.42 - 2026-08-23
+
+- Reworked friend-code entry into a six-slot auto-submit flow and fixed friend-code generation failing on an ambiguous expiry reference.
+- Standardised primary action buttons to keep labels on one line.
+
 ## 0.1.41 - 2026-08-23
 
 - Added private mutual friendships using single-use six-digit codes that expire after five minutes, with no global user search and two-way removal.
