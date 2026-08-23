@@ -8,12 +8,20 @@ export type VisualExercise = ExerciseDefinition & {
   imagePeak?: string | null;
   imageMain?: string | null;
   instructions?: string[];
+  videoUrl?: string | null;
 };
 
 function repImage(path: unknown) {
   if (!path) return null;
   const value = String(path);
   return value.startsWith('http') ? value : `${REPDB_BASE}${value}`;
+}
+
+function repVideo(item: any) {
+  const candidate = item?.video_url || item?.videoUrl || item?.video || item?.youtube_url || item?.youtube || item?.videos?.[0]?.url;
+  if (!candidate) return null;
+  const value = String(candidate);
+  return /^https?:\/\//i.test(value) ? value : null;
 }
 
 function normaliseName(value = '') {
@@ -44,9 +52,10 @@ export async function loadVisualExercises(exercises: ExerciseDefinition[]): Prom
         imagePeak: repImage(images.peak),
         imageMain: repImage(images.main),
         instructions: Array.isArray(rawInstructions) ? rawInstructions.map(String) : [],
+        videoUrl: repVideo(matched),
       };
     });
   } catch {
-    return exercises.map((exercise) => ({ ...exercise, instructions: [] }));
+    return exercises.map((exercise) => ({ ...exercise, instructions: [], videoUrl: null }));
   }
 }
