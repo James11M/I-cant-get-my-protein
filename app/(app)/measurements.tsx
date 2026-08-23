@@ -1,19 +1,66 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 
 import { BackButton } from '@/components/BackButton';
 import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
 import { ExpandChevron } from '@/components/ExpandChevron';
 import { Screen } from '@/components/Screen';
+import { supabase } from '@/lib/supabase';
 import { colours } from '@/theme/colours';
 
 export default function MeasurementsScreen() {
   const available = ['Neck','Shoulders','Chest','Left Bicep','Right Bicep','Left Forearm','Right Forearm','Upper Abs','Waist','Lower Abs','Hips','Left Thigh','Right Thigh','Left Calf','Right Calf'];
   const [advanced, setAdvanced] = useState(false);
-  const [values, setValues] = useState<Record<string,string>>({ Weight: '69.8', 'Body Fat': '15.1' });
+  const [values, setValues] = useState<Record<string,string>>({ Weight: '', 'Body Fat': '15.1' });
   const [editing, setEditing] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
   const unit = editing === 'Body Fat' ? '%' : editing === 'Weight' ? 'kg' : 'cm';
+
+  useFocusEffect(useCallback(() => {
+    let live = true;
+    async function loadWeight() {
+      if (!supabase) return;
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+      const { data } = await supabase.from('profiles').select('current_weight_kg').eq('id', userData.user.id).single();
+      if (live && data?.current_weight_kg != null) {
+        setValues((current) => ({ ...current, Weight: String(data.current_weight_kg) }));
+      }
+    }
+    loadWeight().catch(() => {});
+    return () => { live = false; };
+  }, []));
+
+  async function doneEditing() {
+    if (!editing) return;
+    if (editing !== 'Weight' || !supabase) {
+      setEditing(null);
+      return;
+    }
+    const weight = Number(values.Weight);
+    if (!Number.isFinite(weight) || weight < 20 || weight > 300) {
+      setMessage('Enter a weight between 20 and 300 kg.');
+      return;
+    }
+    setBusy(true);
+    setMessage('');
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      setBusy(false);
+      setMessage('Could not find your account.');
+      return;
+    }
+    const { error } = await supabase.from('profiles').update({ current_weight_kg: weight }).eq('id', userData.user.id);
+    setBusy(false);
+    if (error) setMessage(error.message);
+    else {
+      setMessage('Weight saved.');
+      setEditing(null);
+    }
+  }
 
   return (
     <Screen>
@@ -24,9 +71,9 @@ export default function MeasurementsScreen() {
 
       <Text style={styles.sectionLabel}>CORE</Text>
       <Card style={styles.infoCard}>
-        <MeasurementCore name="Weight" value={`${values.Weight} kg`} onPress={() => setEditing('Weight')} />
+        <MeasurementCore name="Weight" value={values.Weight ? `${values.Weight} kg` : 'Not set'} onPress={() => { setMessage(''); setEditing('Weight'); }} />
         <View style={styles.divider} />
-        <MeasurementCore name="Body Fat" value={`${values['Body Fat']}%`} onPress={() => setEditing('Body Fat')} />
+        <MeasurementCore name="Body Fat" value={`${values['Body Fat']}%`} onPress={() => { setMessage(''); setEditing('Body Fat'); }} />
       </Card>
 
       {editing ? (
@@ -36,9 +83,10 @@ export default function MeasurementsScreen() {
             <TextInput style={[styles.input, styles.flex]} keyboardType="decimal-pad" value={values[editing] || ''} onChangeText={(value) => setValues((current) => ({ ...current, [editing]: value }))} />
             <Text style={styles.inputUnit}>{unit}</Text>
           </View>
-          <Pressable style={styles.primary} onPress={() => setEditing(null)}><Text style={styles.primaryText}>DONE</Text></Pressable>
+          {message ? <Text style={styles.message}>{message}</Text> : null}
+          <Pressable style={[styles.primary, busy && styles.disabled]} disabled={busy} onPress={doneEditing}><Text style={styles.primaryText}>{busy ? 'SAVING…' : 'DONE'}</Text></Pressable>
         </Card>
-      ) : null}
+      ) : message ? <Text style={styles.message}>{message}</Text> : null}
 
       <Pressable style={styles.advancedToggle} onPress={() => setAdvanced((value) => !value)}>
         <Text style={styles.advancedText}>ADVANCED SETTINGS</Text>
@@ -93,6 +141,8 @@ const styles = StyleSheet.create({
   inputUnit: { color: colours.white, fontSize: 13, fontWeight: '900', marginLeft: 8, marginTop: 6 },
   primary: { backgroundColor: colours.gold, borderRadius: 10, minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 11 },
   primaryText: { color: colours.background, fontSize: 10, fontWeight: '900' },
+  disabled: { opacity: 0.45 },
+  message: { color: colours.gold, fontSize: 9, lineHeight: 14, marginTop: 7 },
   divider: { height: 1, backgroundColor: colours.border, marginVertical: 10 },
   listTitle: { color: colours.white, fontSize: 12, fontWeight: '900' },
   listMeta: { color: colours.muted, fontSize: 8, marginTop: 3 },
