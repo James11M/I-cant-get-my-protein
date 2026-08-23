@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.41 - 2026-08-23
+
+- Added private mutual friendships using single-use six-digit codes that expire after five minutes, with no global user search and two-way removal.
+
 ## 0.1.40 - 2026-08-23
 
 - Added persistent Sports & Activities management with user-created activity editing and per-user Hide / Show controls that preserve historical logs.
