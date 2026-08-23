@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.29 - 2026-08-23
+
+- Added the active advanced protein multiplier to the selected Hit My Protein goal card when a user has overridden the recommended value.
+- Kept the standard recommendation in gold and show the override in white as, for example, `1.9 g/kg set by user`.
+- Restyled the Hit My Protein Home card `VIEW →` action as the same compact gold-outline button treatment used by the Settings `+ ADD` controls.
+
 ## 0.1.28 - 2026-08-23
 
 - Corrected the Hit My Protein Home card routing so an `ADD YOUR WEIGHT` state opens Stats & Measurements directly.
