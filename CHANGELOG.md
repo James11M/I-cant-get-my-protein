@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.37 - 2026-08-23
+
+- Reworked History Week corrections into a dedicated edit flow with preloaded activity values, quick-duration changes and update-in-place database saves.
+- Moved activity removal into edit mode so destructive removal is only shown for existing records.
+
 ## 0.1.36 - 2026-08-23
 
 - Added editable History Week records so users can add missed training or remove incorrect entries from past days.
