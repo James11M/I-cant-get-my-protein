@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.31 - 2026-08-23
+
+- Restored the dotted 80% target line on the History Year chart.
+- Disabled forward navigation once History Week reaches the current week.
+- Disabled forward navigation once History Month reaches the current month.
+- Disabled forward navigation once History Year reaches the current year.
+- Kept the existing account-open-date lower bound, so History is now constrained between account opening and the current period.
+
 ## 0.1.30 - 2026-08-23
 
 - Made the currently selected Hit My Protein goal visually unmistakable with a solid info-blue card treatment and a `SELECTED` marker.
