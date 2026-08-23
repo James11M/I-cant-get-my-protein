@@ -27,16 +27,17 @@ export default function ProfileScreen() {
       const { data } = await supabase.from('profiles').select('display_name,date_of_birth').eq('id', user.id).single();
       if (!live || !data) return;
       setDisplayName(data.display_name || '');
-      setDateOfBirth(data.date_of_birth || '');
+      setDateOfBirth(isoDateToUk(data.date_of_birth || ''));
     }
     load().catch(() => { if (live) setMessage('Could not load profile.'); });
     return () => { live = false; };
   }, []));
 
-  const validDob = isValidDateOfBirth(dateOfBirth);
+  const isoDob = ukDateToIso(dateOfBirth);
+  const validDob = Boolean(isoDob);
 
   async function save() {
-    if (!supabase || !validDob) return;
+    if (!supabase || !isoDob) return;
     setBusy(true);
     setMessage('');
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -47,7 +48,7 @@ export default function ProfileScreen() {
     }
     const { error } = await supabase.from('profiles').update({
       display_name: displayName.trim(),
-      date_of_birth: dateOfBirth.trim(),
+      date_of_birth: isoDob,
     }).eq('id', userData.user.id);
     setBusy(false);
     setMessage(error ? error.message : 'Profile saved.');
@@ -71,13 +72,13 @@ export default function ProfileScreen() {
         <TextInput
           value={dateOfBirth}
           onChangeText={setDateOfBirth}
-          placeholder="YYYY-MM-DD"
+          placeholder="DD-MM-YYYY"
           placeholderTextColor={colours.muted}
           keyboardType="numbers-and-punctuation"
           maxLength={10}
           style={styles.input}
         />
-        {dateOfBirth && !validDob ? <Text style={styles.validation}>Enter a valid past date as YYYY-MM-DD.</Text> : null}
+        {dateOfBirth && !validDob ? <Text style={styles.validation}>Enter a valid past date as DD-MM-YYYY.</Text> : null}
 
         {message ? <Text style={styles.message}>{message}</Text> : null}
         <Pressable style={[styles.button, (!validDob || busy) && styles.disabled]} disabled={!validDob || busy} onPress={save}>
@@ -88,14 +89,21 @@ export default function ProfileScreen() {
   );
 }
 
-function isValidDateOfBirth(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
+function isoDateToUk(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  const [year, month, day] = value.split('-');
+  return `${day}-${month}-${year}`;
+}
+
+function ukDateToIso(value: string) {
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(value)) return null;
+  const [day, month, year] = value.split('-').map(Number);
   const date = new Date(year, month - 1, day, 12, 0, 0, 0);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return false;
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
   const today = new Date();
   const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
-  return date < todayDate && year >= 1900;
+  if (date >= todayDate || year < 1900) return null;
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 const styles = StyleSheet.create({
