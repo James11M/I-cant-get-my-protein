@@ -10,12 +10,12 @@ const LINKS = [
   ['👤', 'PROFILE & ACCOUNT', 'Email, display name and date of birth.', 'profile'],
   ['🥚', 'HIT MY PROTEIN', 'Optional age-aware protein calculator and guidance.', 'protein'],
   ['🏋️', 'EXERCISE LIBRARY', 'Exercises, equipment and custom exercises.', 'exercise-library'],
-  ['🏉', 'SPORTS & ACTIVITIES', 'Review the activity library and add your own.', 'sports'],
+  ['🏉', 'SPORTS & ACTIVITIES', 'Review, edit or hide activities.', 'sports'],
   ['⏱️', 'EXERCISE TIMING', 'Rep pace, rest and duration assumptions.', 'timing'],
   ['📈', 'STRENGTH TRACKING', 'Best 10-Rep Weight and estimated 1RM reference.', 'strength-tracking'],
   ['🎯', 'TARGETS', 'Month, year, weight and body-fat goals.', 'targets'],
   ['◎', 'STATS & MEASUREMENTS', 'Add or remove advanced measurements from Core.', 'measurements'],
-  ['🏫', 'SCHOOL TERM DATES', 'View linked-school dates or manage personal term periods.', 'term-dates'],
+  ['🏫', 'SCHOOL TERM DATES', 'Linked-school or personal term dates.', 'term-dates'],
 ] as const;
 
 export default function NerdScreen() {
@@ -23,6 +23,7 @@ export default function NerdScreen() {
     if (section === 'profile') return router.push('/(app)/profile');
     if (section === 'protein') return router.push('/(app)/protein');
     if (section === 'exercise-library') return router.push('/(app)/exercise-library');
+    if (section === 'sports') return router.push('/(app)/sports-settings');
     if (section === 'measurements') return router.push('/(app)/measurements');
     if (section === 'term-dates') return router.push('/(app)/school-term-dates');
     return router.push({ pathname: '/(app)/settings/[section]', params: { section } });
