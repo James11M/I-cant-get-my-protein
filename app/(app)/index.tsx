@@ -71,6 +71,7 @@ export default function HomeScreen() {
   const complete = todayCredit >= DAILY_TARGET;
   const proteinMultiplier = getProteinMultiplier(protein, today);
   const proteinTarget = protein.weight && protein.goal && proteinMultiplier ? Math.round(protein.weight * proteinMultiplier) : null;
+  const proteinRoute = !protein.weight && protein.goal ? '/(app)/measurements' : '/(app)/protein';
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
@@ -96,7 +97,7 @@ export default function HomeScreen() {
         </Pressable>
 
         {protein.enabled ? (
-          <Pressable style={styles.proteinPress} onPress={() => router.push('/(app)/protein')}>
+          <Pressable style={styles.proteinPress} onPress={() => router.push(proteinRoute)}>
             <Card style={styles.proteinCard}>
               <View style={styles.rowBetween}>
                 <View style={styles.flex}>
