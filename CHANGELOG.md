@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.38 - 2026-08-23
+
+- Unified the Strength Training exercise picker with the main Exercise Library, including RepDB images, favourites, horizontal filters and `MY EQUIPMENT`.
+- Added per-user exercise measurement settings for Time, Reps, Weight and Distance and made workout set fields follow those settings.
+- Added persistent custom strength exercises that use the same measurement and equipment model.
+
 ## 0.1.37 - 2026-08-23
 
 - Reworked History Week corrections into a dedicated edit flow with preloaded activity values, quick-duration changes and update-in-place database saves.
