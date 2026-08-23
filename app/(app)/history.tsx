@@ -7,6 +7,7 @@ import { Brand } from '@/components/Brand';
 import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
 import { ActivityLog, getActivityLogs } from '@/features/activities/activity.service';
+import { supabase } from '@/lib/supabase';
 import { colours } from '@/theme/colours';
 
 type Mode = 'week' | 'month' | 'year';
@@ -25,13 +26,34 @@ export default function HistoryScreen() {
   const [weekDate, setWeekDate] = useState(() => new Date());
   const [monthDate, setMonthDate] = useState(() => new Date());
   const [year, setYear] = useState(() => new Date().getFullYear());
-  const today = useMemo(() => new Date(), []);
+  const [openedAt, setOpenedAt] = useState<Date | null>(null);
+  const today = useMemo(() => atNoon(new Date()), []);
 
   useFocusEffect(useCallback(() => {
     let live = true;
-    getActivityLogs().then((items) => { if (live) setLogs(items); }).catch(() => { if (live) setLogs([]); }).finally(() => { if (live) setLoading(false); });
+    async function load() {
+      const items = await getActivityLogs().catch(() => [] as ActivityLog[]);
+      if (!live) return;
+      setLogs(items);
+
+      let accountDate: Date | null = null;
+      if (supabase) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          const { data } = await supabase.from('profiles').select('created_at').eq('id', userData.user.id).single();
+          if (data?.created_at) accountDate = atNoon(new Date(data.created_at));
+        }
+      }
+      if (!accountDate && items.length) {
+        accountDate = items.map((item) => atNoon(new Date(item.performed_at))).sort((a, b) => a.getTime() - b.getTime())[0];
+      }
+      if (!live) return;
+      setOpenedAt(accountDate || today);
+      setLoading(false);
+    }
+    load().catch(() => { if (live) { setOpenedAt(today); setLoading(false); } });
     return () => { live = false; };
-  }, []));
+  }, [today]));
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
@@ -46,9 +68,9 @@ export default function HistoryScreen() {
 
         <View style={styles.body}>
           {loading ? <Text style={styles.muted}>Loading history…</Text> : null}
-          {!loading && mode === 'week' ? <WeekView logs={logs} today={today} weekDate={weekDate} onWeek={setWeekDate} /> : null}
-          {!loading && mode === 'month' ? <MonthView logs={logs} today={today} monthDate={monthDate} onMonth={setMonthDate} /> : null}
-          {!loading && mode === 'year' ? <YearView logs={logs} today={today} year={year} onYear={setYear} /> : null}
+          {!loading && openedAt && mode === 'week' ? <WeekView logs={logs} today={today} openedAt={openedAt} weekDate={weekDate} onWeek={setWeekDate} /> : null}
+          {!loading && openedAt && mode === 'month' ? <MonthView logs={logs} today={today} openedAt={openedAt} monthDate={monthDate} onMonth={setMonthDate} /> : null}
+          {!loading && openedAt && mode === 'year' ? <YearView logs={logs} today={today} openedAt={openedAt} year={year} onYear={setYear} /> : null}
         </View>
       </ScrollView>
       <BottomNav active="history" />
@@ -60,107 +82,133 @@ function Segment({ label, active, onPress }: { label: string; active: boolean; o
   return <Pressable style={[styles.segment, active && styles.segmentActive]} onPress={onPress}><Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text></Pressable>;
 }
 
-function PeriodRow({ label, onBack, onNext }: { label: string; onBack: () => void; onNext: () => void }) {
+function PeriodRow({ label, onBack, onNext, backDisabled = false }: { label: string; onBack: () => void; onNext: () => void; backDisabled?: boolean }) {
   return <View style={styles.periodRow}>
-    <Pressable style={styles.chevronButton} onPress={onBack}><Text style={styles.chevron}>‹</Text></Pressable>
+    <Pressable style={[styles.chevronButton, backDisabled && styles.chevronDisabled]} onPress={onBack} disabled={backDisabled}><Text style={[styles.chevron, backDisabled && styles.chevronTextDisabled]}>‹</Text></Pressable>
     <Text style={styles.period}>{label}</Text>
     <Pressable style={styles.chevronButton} onPress={onNext}><Text style={styles.chevron}>›</Text></Pressable>
   </View>;
 }
 
-function WeekView({ logs, today, weekDate, onWeek }: { logs: ActivityLog[]; today: Date; weekDate: Date; onWeek: (date: Date) => void }) {
+function WeekView({ logs, today, openedAt, weekDate, onWeek }: { logs: ActivityLog[]; today: Date; openedAt: Date; weekDate: Date; onWeek: (date: Date) => void }) {
   const monday = startOfWeek(weekDate);
   const sunday = addDays(monday, 6);
-  const comeback = getRollingComeback(logs, today);
+  const firstWeek = startOfWeek(openedAt);
+  const backDisabled = dateOnly(monday) <= dateOnly(firstWeek);
+  const comeback = getRollingComeback(logs, today, openedAt);
   return <>
-    <PeriodRow label={`${dateLabel(monday)} – ${dateLabel(sunday)}`} onBack={() => onWeek(addDays(weekDate, -7))} onNext={() => onWeek(addDays(weekDate, 7))} />
+    <PeriodRow label={`${dateLabel(monday)} – ${dateLabel(sunday)}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onWeek(addDays(weekDate, -7)); }} onNext={() => onWeek(addDays(weekDate, 7))} />
     <View style={styles.weekList}>{Array.from({ length: 7 }, (_, i) => {
       const date = addDays(monday, i);
-      const dayLogs = logsForDate(logs, date);
-      const raw = normalCreditForDate(logs, date);
-      const recovered = comeback.recoveredByDate[dateOnly(date)] || 0;
+      const beforeAccount = dateOnly(date) < dateOnly(openedAt);
+      const dayLogs = beforeAccount ? [] : logsForDate(logs, date);
+      const raw = beforeAccount ? 0 : normalCreditForDate(logs, date);
+      const recovered = beforeAccount ? 0 : comeback.recoveredByDate[dateOnly(date)] || 0;
       const credit = Math.min(DAILY_TARGET, raw + recovered);
       const future = dateOnly(date) > dateOnly(today);
       const isToday = dateOnly(date) === dateOnly(today);
-      const complete = credit >= DAILY_TARGET;
-      const partial = !future && credit > 0 && !complete;
+      const complete = !beforeAccount && credit >= DAILY_TARGET;
+      const partial = !beforeAccount && !future && credit > 0 && !complete;
       const comebackComplete = complete && recovered > 0 && raw < DAILY_TARGET;
-      const status = future ? '' : isToday && !complete ? 'INCOMPLETE' : complete ? comebackComplete ? 'COMEBACK' : 'COMPLETE' : partial ? 'PARTIAL' : 'MISSED';
+      const status = beforeAccount || future ? '' : isToday && !complete ? 'INCOMPLETE' : complete ? comebackComplete ? 'COMEBACK' : 'COMPLETE' : partial ? 'PARTIAL' : 'MISSED';
       const todayIncomplete = isToday && !complete;
       const todayComplete = isToday && complete;
-      const darkTodayText = todayIncomplete;
       return <Card key={date.toISOString()} style={[
         styles.dayCard,
+        beforeAccount && styles.beforeAccountCard,
         !isToday && complete && styles.completeCard,
         !isToday && partial && styles.partialCard,
-        !future && !isToday && !complete && !partial && styles.missedCard,
+        !future && !beforeAccount && !isToday && !complete && !partial && styles.missedCard,
         !isToday && recovered > 0 && styles.comebackCard,
         todayIncomplete && styles.todayIncompleteCard,
         todayComplete && styles.todayCompleteCard,
       ]}>
         <View style={styles.dayTop}>
-          <Text style={[styles.dayDate, darkTodayText && styles.todayDarkText]}>{DAYS[date.getDay()]} {date.getDate()}</Text>
+          <Text style={[styles.dayDate, beforeAccount && styles.beforeAccountText]}>{DAYS[date.getDay()]} {date.getDate()}</Text>
           <Text style={[
             styles.status,
-            isToday ? (complete ? styles.todayCompleteText : styles.todayDarkText) : complete ? comebackComplete ? styles.purple : styles.green : partial ? styles.gold : styles.red,
+            isToday ? styles.todayText : complete ? comebackComplete ? styles.purple : styles.green : partial ? styles.gold : styles.red,
           ]}>{status}</Text>
         </View>
         <Text style={[
           styles.dayActivity,
-          !dayLogs.length && !isToday && styles.dayActivityMuted,
-          darkTodayText && styles.todayDarkText,
-          todayComplete && styles.todayCompleteText,
-        ]}>{dayLogs.length ? dayLogs.map((item) => item.activity_name).join(' • ') : future ? 'Upcoming' : recovered > 0 ? 'Recovered with comeback' : 'No training logged'}</Text>
-        {recovered > 0 ? <Text style={[styles.comeback, isToday && (complete ? styles.todayCompleteText : styles.todayDarkText)]}>+{Math.round(recovered)} comeback min • {Math.round(credit)} / {DAILY_TARGET}</Text> : null}
-        {isToday ? <Text style={[styles.todayMarker, complete ? styles.todayCompleteText : styles.todayDarkText]}>★ TODAY</Text> : null}
+          (!dayLogs.length && !isToday) && styles.dayActivityMuted,
+          beforeAccount && styles.beforeAccountText,
+          isToday && styles.todayText,
+        ]}>{beforeAccount ? 'Before account opened' : dayLogs.length ? dayLogs.map((item) => item.activity_name).join(' • ') : future ? 'Upcoming' : recovered > 0 ? 'Recovered with comeback' : 'No training logged'}</Text>
+        {recovered > 0 ? <Text style={[styles.comeback, isToday && styles.todayText]}>+{Math.round(recovered)} comeback min • {Math.round(credit)} / {DAILY_TARGET}</Text> : null}
+        {isToday ? <Text style={styles.todayMarker}>★ TODAY</Text> : null}
       </Card>;
     })}</View>
   </>;
 }
 
-function MonthView({ logs, today, monthDate, onMonth }: { logs: ActivityLog[]; today: Date; monthDate: Date; onMonth: (date: Date) => void }) {
+function MonthView({ logs, today, openedAt, monthDate, onMonth }: { logs: ActivityLog[]; today: Date; openedAt: Date; monthDate: Date; onMonth: (date: Date) => void }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
   const days = new Date(year, month + 1, 0).getDate();
-  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const monthStart = new Date(year, month, 1, 12);
+  const offset = (monthStart.getDay() + 6) % 7;
+  const firstMonth = new Date(openedAt.getFullYear(), openedAt.getMonth(), 1, 12);
+  const backDisabled = monthStart <= firstMonth;
   const isCurrent = year === today.getFullYear() && month === today.getMonth();
-  const inFuture = new Date(year, month, 1) > new Date(today.getFullYear(), today.getMonth(), 1);
-  const elapsed = inFuture ? 0 : isCurrent ? today.getDate() : days;
-  const completeEquivalent = elapsed ? Array.from({ length: elapsed }, (_, i) => effectiveCreditForDate(logs, new Date(year, month, i + 1), today)).reduce((sum, c) => sum + Math.min(1, c / DAILY_TARGET), 0) : 0;
-  const targetDays = Math.max(1, Math.round(Math.max(1, elapsed) * (WEEKLY_ACTIVE_GOAL / 7)));
-  const score = inFuture ? 0 : Math.min(100, Math.round((completeEquivalent / targetDays) * 100));
+  const inFuture = monthStart > new Date(today.getFullYear(), today.getMonth(), 1, 12);
+  const endDay = inFuture ? 0 : isCurrent ? today.getDate() : days;
+  const startDay = year === openedAt.getFullYear() && month === openedAt.getMonth() ? openedAt.getDate() : 1;
+  const activeDays = Math.max(0, endDay - startDay + 1);
+  const completeEquivalent = activeDays ? Array.from({ length: activeDays }, (_, i) => effectiveCreditForDate(logs, new Date(year, month, startDay + i, 12), today, openedAt)).reduce((sum, c) => sum + Math.min(1, c / DAILY_TARGET), 0) : 0;
+  const targetDays = Math.max(1, Math.round(Math.max(1, activeDays) * (WEEKLY_ACTIVE_GOAL / 7)));
+  const score = inFuture || activeDays === 0 ? 0 : Math.min(100, Math.round((completeEquivalent / targetDays) * 100));
+  const comeback = getRollingComeback(logs, today, openedAt);
+
   return <>
-    <PeriodRow label={`${MONTH_NAMES[month]} ${year}`} onBack={() => onMonth(addMonths(monthDate, -1))} onNext={() => onMonth(addMonths(monthDate, 1))} />
-    <Card style={styles.scoreCard}>
-      <Text style={styles.scoreLabel}>MONTH SCORE</Text>
-      <Text style={styles.score}>{score}%</Text>
-      <Text style={styles.target}>TARGET {MONTH_TARGET}%</Text>
+    <PeriodRow label={`${MONTH_NAMES[month]} ${year}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onMonth(addMonths(monthDate, -1)); }} onNext={() => onMonth(addMonths(monthDate, 1))} />
+    <Card style={styles.monthCard}>
+      <View style={styles.monthScoreRow}>
+        <View>
+          <Text style={styles.scoreLabel}>MONTH SCORE</Text>
+          <Text style={styles.score}>{score}%</Text>
+        </View>
+        <View style={styles.targetBadge}>
+          <Text style={styles.targetLabel}>TARGET</Text>
+          <Text style={styles.targetValue}>{MONTH_TARGET}%</Text>
+        </View>
+      </View>
+
+      <View style={styles.calendarHeader}>{['M','T','W','T','F','S','S'].map((d, i) => <Text key={`${d}-${i}`} style={styles.calendarHeaderText}>{d}</Text>)}</View>
+      <View style={styles.calendarGrid}>{Array.from({ length: offset + days }, (_, index) => {
+        const day = index - offset + 1;
+        if (day < 1) return <View key={`blank-${index}`} style={styles.calendarCell} />;
+        const date = new Date(year, month, day, 12);
+        const beforeAccount = dateOnly(date) < dateOnly(openedAt);
+        const future = dateOnly(date) > dateOnly(today);
+        const isToday = dateOnly(date) === dateOnly(today);
+        const credit = beforeAccount ? 0 : effectiveCreditForDate(logs, date, today, openedAt);
+        const recovered = beforeAccount ? 0 : comeback.recoveredByDate[dateOnly(date)] || 0;
+        const complete = credit >= DAILY_TARGET;
+        const colour = beforeAccount || future ? colours.card2 : complete ? recovered > 0 ? colours.purple : colours.green : isToday ? colours.blue : credit > 0 ? colours.gold : colours.red;
+        return <View key={index} style={styles.calendarCell}><View style={[styles.calendarDay, { backgroundColor: colour }]}><Text style={[styles.calendarText, beforeAccount && styles.beforeAccountText]}>{day}</Text></View></View>;
+      })}</View>
     </Card>
-    <View style={styles.weekdays}>{['M','T','W','T','F','S','S'].map((d, i) => <Text key={`${d}-${i}`} style={styles.weekday}>{d}</Text>)}</View>
-    <View style={styles.calendar}>{Array.from({ length: 42 }, (_, index) => {
-      const day = index - offset + 1;
-      if (day < 1 || day > days) return <View key={index} style={styles.dayCellEmpty} />;
-      const date = new Date(year, month, day);
-      const credit = effectiveCreditForDate(logs, date, today);
-      const recovered = getRollingComeback(logs, today).recoveredByDate[dateOnly(date)] || 0;
-      const future = dateOnly(date) > dateOnly(today);
-      const colour = future ? colours.card2 : credit >= DAILY_TARGET ? recovered > 0 ? colours.purple : colours.green : credit > 0 ? colours.gold : dateOnly(date) === dateOnly(today) ? colours.blue : colours.red;
-      return <View key={index} style={[styles.dayCell, { backgroundColor: colour }]}><Text style={styles.dayNumber}>{day}</Text></View>;
-    })}</View>
   </>;
 }
 
-function YearView({ logs, today, year, onYear }: { logs: ActivityLog[]; today: Date; year: number; onYear: (year: number) => void }) {
+function YearView({ logs, today, openedAt, year, onYear }: { logs: ActivityLog[]; today: Date; openedAt: Date; year: number; onYear: (year: number) => void }) {
+  const backDisabled = year <= openedAt.getFullYear();
   const values = Array.from({ length: 12 }, (_, month) => {
-    const monthStart = new Date(year, month, 1);
-    if (monthStart > new Date(today.getFullYear(), today.getMonth(), 1)) return null;
-    const end = year === today.getFullYear() && month === today.getMonth() ? today.getDate() : new Date(year, month + 1, 0).getDate();
-    const equivalent = Array.from({ length: end }, (_, i) => effectiveCreditForDate(logs, new Date(year, month, i + 1), today)).reduce((sum, c) => sum + Math.min(1, c / DAILY_TARGET), 0);
-    const target = Math.max(1, Math.round(end * (WEEKLY_ACTIVE_GOAL / 7)));
+    const monthStart = new Date(year, month, 1, 12);
+    const monthEnd = new Date(year, month + 1, 0, 12);
+    if (monthEnd < openedAt || monthStart > new Date(today.getFullYear(), today.getMonth(), 1, 12)) return null;
+    const startDay = year === openedAt.getFullYear() && month === openedAt.getMonth() ? openedAt.getDate() : 1;
+    const endDay = year === today.getFullYear() && month === today.getMonth() ? today.getDate() : monthEnd.getDate();
+    const activeDays = Math.max(0, endDay - startDay + 1);
+    if (!activeDays) return null;
+    const equivalent = Array.from({ length: activeDays }, (_, i) => effectiveCreditForDate(logs, new Date(year, month, startDay + i, 12), today, openedAt)).reduce((sum, c) => sum + Math.min(1, c / DAILY_TARGET), 0);
+    const target = Math.max(1, Math.round(activeDays * (WEEKLY_ACTIVE_GOAL / 7)));
     return Math.min(100, Math.round((equivalent / target) * 100));
   });
   return <>
-    <PeriodRow label={`${year}`} onBack={() => onYear(year - 1)} onNext={() => onYear(year + 1)} />
+    <PeriodRow label={`${year}`} backDisabled={backDisabled} onBack={() => { if (!backDisabled) onYear(year - 1); }} onNext={() => onYear(year + 1)} />
     <Card style={styles.yearCard}>
       <View style={styles.yearTop}><Text style={styles.scoreLabel}>YEAR</Text><Text style={styles.target}>TARGET {MONTH_TARGET}%</Text></View>
       <View style={styles.chart}>{values.map((value, index) => {
@@ -172,8 +220,9 @@ function YearView({ logs, today, year, onYear }: { logs: ActivityLog[]; today: D
   </>;
 }
 
-function startOfWeek(date: Date) { const copy = new Date(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); copy.setHours(12,0,0,0); return copy; }
-function addDays(date: Date, amount: number) { const copy = new Date(date); copy.setDate(copy.getDate() + amount); copy.setHours(12,0,0,0); return copy; }
+function atNoon(date: Date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0); }
+function startOfWeek(date: Date) { const copy = atNoon(date); const day = copy.getDay(); copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day)); return copy; }
+function addDays(date: Date, amount: number) { const copy = atNoon(date); copy.setDate(copy.getDate() + amount); return copy; }
 function addMonths(date: Date, amount: number) { return new Date(date.getFullYear(), date.getMonth() + amount, 1, 12); }
 function dateOnly(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
 function dateLabel(date: Date) { return `${date.getDate()} ${date.toLocaleString('en-GB', { month: 'short' }).toUpperCase()}`; }
@@ -181,12 +230,13 @@ function logsForDate(logs: ActivityLog[], date: Date) { return logs.filter((log)
 function dayCredit(logs: ActivityLog[], date: Date) { return logsForDate(logs, date).reduce((sum, item) => sum + Number(item.credit_minutes || item.duration_minutes || 0), 0); }
 function normalCreditForDate(logs: ActivityLog[], date: Date) { return Math.min(DAILY_TARGET, dayCredit(logs, date)); }
 function extraCreditForDate(logs: ActivityLog[], date: Date) { return Math.max(0, dayCredit(logs, date) - DAILY_TARGET); }
-function getRollingComeback(logs: ActivityLog[], today: Date) {
+function getRollingComeback(logs: ActivityLog[], today: Date, openedAt: Date) {
   const windowStart = addDays(today, -6);
   const deficits: { key: string; remaining: number }[] = [];
   const recoveredByDate: Record<string, number> = {};
   for (let index = 0; index < 7; index += 1) {
     const date = addDays(windowStart, index);
+    if (dateOnly(date) < dateOnly(openedAt)) continue;
     const normal = normalCreditForDate(logs, date);
     const missing = Math.max(0, DAILY_TARGET - normal);
     let available = extraCreditForDate(logs, date) * COMEBACK_RATE;
@@ -202,8 +252,9 @@ function getRollingComeback(logs: ActivityLog[], today: Date) {
   }
   return { recoveredByDate };
 }
-function effectiveCreditForDate(logs: ActivityLog[], date: Date, today: Date) {
-  const recovered = getRollingComeback(logs, today).recoveredByDate[dateOnly(date)] || 0;
+function effectiveCreditForDate(logs: ActivityLog[], date: Date, today: Date, openedAt: Date) {
+  if (dateOnly(date) < dateOnly(openedAt)) return 0;
+  const recovered = getRollingComeback(logs, today, openedAt).recoveredByDate[dateOnly(date)] || 0;
   return Math.min(DAILY_TARGET, normalCreditForDate(logs, date) + recovered);
 }
 
@@ -215,19 +266,37 @@ const styles = StyleSheet.create({
   segmentActive: { backgroundColor: colours.gold },
   segmentText: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 }, segmentTextActive: { color: colours.background },
   body: { marginTop: 9 }, muted: { color: colours.muted, fontSize: 10, marginTop: 20 },
-  periodRow: { height: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  periodRow: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   period: { color: colours.white, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
-  chevronButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' }, chevron: { color: colours.gold, fontSize: 26, lineHeight: 27 },
-  weekList: { gap: 7 }, dayCard: { paddingVertical: 9, paddingHorizontal: 12, borderRadius: 11 }, completeCard: { borderColor: colours.green }, partialCard: { borderColor: colours.gold }, missedCard: { borderColor: colours.red }, comebackCard: { borderColor: colours.purple },
-  todayIncompleteCard: { backgroundColor: colours.gold, borderColor: colours.gold, borderWidth: 1 },
-  todayCompleteCard: { backgroundColor: colours.green, borderColor: colours.green, borderWidth: 1 },
-  dayTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, dayDate: { color: colours.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.6 }, status: { fontSize: 8, fontWeight: '900', letterSpacing: 0.6 }, green: { color: colours.green }, gold: { color: colours.gold }, red: { color: colours.red }, purple: { color: colours.purple },
-  todayDarkText: { color: colours.background },
-  todayCompleteText: { color: colours.white },
-  dayActivity: { color: colours.white, fontSize: 11, fontWeight: '800', marginTop: 4 }, dayActivityMuted: { color: colours.muted }, comeback: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 3 },
-  todayMarker: { alignSelf: 'flex-end', fontSize: 7, fontWeight: '900', letterSpacing: 0.7, marginTop: 4 },
-  scoreCard: { alignItems: 'center', paddingVertical: 13, marginBottom: 10 }, scoreLabel: { color: colours.gold, fontSize: 8, fontWeight: '900', letterSpacing: 1.1 }, score: { color: colours.white, fontSize: 32, fontWeight: '900', lineHeight: 36, marginTop: 1 }, target: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 },
-  weekdays: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 5 }, weekday: { width: '13.2%', textAlign: 'center', color: colours.muted, fontSize: 8, fontWeight: '900' },
-  calendar: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 }, dayCell: { width: '12.9%', aspectRatio: 1, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }, dayCellEmpty: { width: '12.9%', aspectRatio: 1 }, dayNumber: { color: colours.white, fontSize: 9, fontWeight: '900' },
-  yearCard: { paddingTop: 13, paddingBottom: 12 }, yearTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, chart: { height: 190, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 }, barColumn: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end' }, bar: { width: 13, borderRadius: 4, marginBottom: 7 }, monthLetter: { color: colours.muted, fontSize: 7, fontWeight: '900' },
+  chevronButton: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: colours.border, alignItems: 'center', justifyContent: 'center' },
+  chevron: { color: colours.gold, fontSize: 27, lineHeight: 28 },
+  chevronDisabled: { opacity: 0.25 }, chevronTextDisabled: { color: colours.muted },
+
+  weekList: { gap: 7 },
+  dayCard: { paddingVertical: 9, paddingHorizontal: 12, borderRadius: 11 },
+  completeCard: { borderColor: colours.green }, partialCard: { borderColor: colours.gold }, missedCard: { borderColor: colours.red }, comebackCard: { borderColor: colours.purple }, beforeAccountCard: { borderColor: colours.border, opacity: 0.6 },
+  todayIncompleteCard: { backgroundColor: colours.blue, borderColor: colours.blue }, todayCompleteCard: { backgroundColor: colours.green, borderColor: colours.green },
+  dayTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dayDate: { color: colours.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.6 }, status: { fontSize: 8, fontWeight: '900', letterSpacing: 0.6 },
+  green: { color: colours.green }, gold: { color: colours.gold }, red: { color: colours.red }, purple: { color: colours.purple },
+  dayActivity: { color: colours.white, fontSize: 11, fontWeight: '800', marginTop: 4 }, dayActivityMuted: { color: colours.muted }, beforeAccountText: { color: colours.muted }, todayText: { color: colours.white },
+  comeback: { color: colours.purple, fontSize: 8, fontWeight: '900', marginTop: 3 }, todayMarker: { color: colours.white, fontSize: 7, fontWeight: '900', letterSpacing: 0.8, textAlign: 'right', marginTop: 4 },
+
+  monthCard: { paddingTop: 14, paddingBottom: 15 },
+  monthScoreRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 15 },
+  scoreLabel: { color: colours.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  score: { color: colours.white, fontSize: 34, fontWeight: '900', lineHeight: 40, marginTop: 2 },
+  targetBadge: { backgroundColor: colours.card2, borderRadius: 10, minWidth: 78, paddingVertical: 9, paddingHorizontal: 12, alignItems: 'center' },
+  targetLabel: { color: colours.muted, fontSize: 7, fontWeight: '800', letterSpacing: 0.5 }, targetValue: { color: colours.gold, fontSize: 18, fontWeight: '900', marginTop: 1 },
+  target: { color: colours.muted, fontSize: 8, fontWeight: '900', letterSpacing: 0.7 },
+  calendarHeader: { flexDirection: 'row', marginBottom: 4 },
+  calendarHeaderText: { width: '14.2857%', textAlign: 'center', color: colours.muted, fontSize: 8, fontWeight: '900' },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calendarCell: { width: '14.2857%', aspectRatio: 1, padding: 3 },
+  calendarDay: { flex: 1, borderRadius: 8, borderWidth: 2, borderColor: colours.card, alignItems: 'center', justifyContent: 'center' },
+  calendarText: { color: colours.white, fontSize: 9, fontWeight: '900' },
+
+  yearCard: { paddingTop: 13, paddingBottom: 12 }, yearTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  chart: { height: 190, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
+  barColumn: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end' }, bar: { width: 13, borderRadius: 4, marginBottom: 7 }, monthLetter: { color: colours.muted, fontSize: 7, fontWeight: '900' },
 });
