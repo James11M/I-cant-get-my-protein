@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.27 - 2026-08-23
+
+- Restored the POC `info blue` treatment for an incomplete current day in History Week while retaining the stronger solid-background TODAY card and `INCOMPLETE` wording.
+- Kept a completed current day solid green with white text and retained the `★ TODAY` marker.
+- Rebuilt History Month against the uploaded POC reference so weekday headings and date cells share an exact seven-column `14.2857%` grid and remain aligned.
+- Moved Month Score, target badge and calendar back into the single POC-style month card and kept today blue until complete, then green.
+- Limited History Week, Month and Year navigation to the user's account-open date using the immutable profile `created_at` value already captured at signup.
+- Excluded pre-account days from History scoring and rendered them as neutral/non-active dates rather than missed training.
+- Added development backlog issue #3 for signup email confirmation and preservation of the eventual activation timestamp.
+
 ## 0.1.26 - 2026-08-23
 
 - Restored the tap-through Progress / Levels screen behind the top Home level card, using the newly supplied POC screenshots as the visual reference.
@@ -192,6 +202,6 @@
 - Created the Expo SDK 57 + TypeScript + Expo Router production foundation.
 - Added Supabase client configuration and persistent auth session support.
 - Added login, signup, protected app routing, and initial signed-in Today screen.
-- Added the first Supabase migration for users, optional organisations, activities, activity logs, and Row Level Security.
+- Added the first Supabase migration for users, optional organisations, activities, activity logs, auth profile creation, and Row Level Security.
 - Added shared theme, brand, card, and screen components while preserving the existing app branding.
 - Added EAS build profiles, environment template, README, repository ignores, and iPhone preview instructions.
