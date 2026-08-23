@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
@@ -18,6 +18,7 @@ export default function FriendsScreen() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const entryInput = useRef<TextInput>(null);
 
   const load = useCallback(async () => {
     try { setFriends(await getMyFriends()); } catch { setMessage('Could not load friends.'); }
@@ -43,8 +44,8 @@ export default function FriendsScreen() {
     finally { setBusy(false); }
   }
 
-  async function addFriend() {
-    const cleaned = entry.replace(/\D/g, '').slice(0, 6);
+  async function addFriend(codeValue = entry) {
+    const cleaned = codeValue.replace(/\D/g, '').slice(0, 6);
     if (cleaned.length !== 6 || busy) return;
     setBusy(true); setMessage('');
     try {
@@ -52,8 +53,15 @@ export default function FriendsScreen() {
       setEntry('');
       setMessage(result ? `${result.displayName} added as a friend.` : 'Friend added.');
       await load();
-    } catch (error: any) { setMessage(error?.message || 'That code is invalid or has expired.'); }
-    finally { setBusy(false); }
+    } catch (error: any) {
+      setMessage(error?.message || 'That code is invalid or has expired.');
+    } finally { setBusy(false); }
+  }
+
+  function updateEntry(value: string) {
+    const cleaned = value.replace(/\D/g, '').slice(0, 6);
+    setEntry(cleaned);
+    if (cleaned.length === 6 && entry.length < 6 && !busy) void addFriend(cleaned);
   }
 
   async function remove(friend: Friend) {
@@ -79,32 +87,31 @@ export default function FriendsScreen() {
         <Text style={styles.body}>Generate a code and tell it to your friend. It expires after 5 minutes and works once.</Text>
         {codeActive ? (
           <>
-            <Text style={styles.code}>{code.slice(0,3)} {code.slice(3)}</Text>
+            <Text style={styles.code}>{formatDisplayCode(code)}</Text>
             <Text style={styles.expiry}>EXPIRES IN {formatCountdown(secondsLeft)}</Text>
           </>
         ) : null}
         {code && !codeActive ? <Text style={styles.expired}>CODE EXPIRED</Text> : null}
-        <PrimaryActionButton label={codeActive ? 'GENERATE NEW CODE' : '+ GENERATE FRIEND CODE'} onPress={generateCode} disabled={busy} style={styles.actionGap} />
+        <PrimaryActionButton label={codeActive ? 'NEW FRIEND CODE' : 'GET FRIEND CODE'} onPress={generateCode} disabled={busy} style={styles.actionGap} />
       </Card>
 
       <Card style={styles.enterCard}>
-        <Text style={styles.sectionTitle}>ENTER THEIR CODE</Text>
-        <Text style={styles.body}>Enter the six digits shown on your friend's phone. This creates the friendship for both of you.</Text>
-        <View style={styles.entryRow}>
+        <Text style={styles.sectionTitle}>ENTER FRIEND CODE</Text>
+        <Text style={styles.body}>Enter the six digits shown on your friend's phone. The sixth digit confirms automatically.</Text>
+        <Pressable style={styles.codeEntryWrap} onPress={() => entryInput.current?.focus()}>
+          <CodeSlots value={entry} />
           <TextInput
-            style={styles.codeInput}
-            value={formatEntry(entry)}
-            onChangeText={(value) => setEntry(value.replace(/\D/g, '').slice(0, 6))}
+            ref={entryInput}
+            style={styles.hiddenInput}
+            value={entry}
+            onChangeText={updateEntry}
             keyboardType="number-pad"
-            maxLength={7}
-            placeholder="123 456"
-            placeholderTextColor={colours.muted}
+            maxLength={6}
             textContentType="oneTimeCode"
+            autoComplete="one-time-code"
+            caretHidden
           />
-          <Pressable style={[styles.inlineAdd, entry.length !== 6 && styles.disabled]} onPress={addFriend} disabled={entry.length !== 6 || busy}>
-            <Text style={styles.inlineAddText}>ADD FRIEND</Text>
-          </Pressable>
-        </View>
+        </Pressable>
       </Card>
 
       {message ? <Text style={styles.message}>{message}</Text> : null}
@@ -126,17 +133,34 @@ export default function FriendsScreen() {
   );
 }
 
-function formatEntry(value: string) { const digits = value.replace(/\D/g, '').slice(0, 6); return digits.length > 3 ? `${digits.slice(0,3)} ${digits.slice(3)}` : digits; }
+function CodeSlots({ value }: { value: string }) {
+  const digits = value.padEnd(6, ' ').split('');
+  return <View style={styles.slotsRow}>
+    {digits.map((digit, index) => (
+      <View key={index} style={styles.slotGroup}>
+        {index === 3 ? <Text style={styles.hyphen}>-</Text> : null}
+        <View style={[styles.slot, index === value.length && value.length < 6 && styles.slotActive]}>
+          <Text style={styles.slotText}>{digit.trim() || '–'}</Text>
+        </View>
+      </View>
+    ))}
+  </View>;
+}
+
+function formatDisplayCode(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 6).split('');
+  return `${digits.slice(0, 3).join(' ')}  -  ${digits.slice(3, 6).join(' ')}`;
+}
 function formatCountdown(seconds: number) { const min = Math.floor(seconds / 60); const sec = String(seconds % 60).padStart(2, '0'); return `${min}:${sec}`; }
 function formatDate(value: string) { const date = new Date(value); return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`; }
 
 const styles = StyleSheet.create({
   title:{color:colours.white,fontSize:30,fontWeight:'900'}, subtitle:{color:colours.muted,fontSize:11,lineHeight:16,marginTop:5,marginBottom:16},
   codeCard:{borderColor:colours.gold,marginBottom:10}, enterCard:{marginBottom:10}, sectionTitle:{color:colours.gold,fontSize:9,fontWeight:'900',letterSpacing:1},
-  body:{color:colours.muted,fontSize:10,lineHeight:15,marginTop:5}, code:{color:colours.white,fontSize:42,lineHeight:50,fontWeight:'900',letterSpacing:5,textAlign:'center',marginTop:15},
+  body:{color:colours.muted,fontSize:10,lineHeight:15,marginTop:5}, code:{color:colours.white,fontSize:34,lineHeight:44,fontWeight:'900',letterSpacing:2,textAlign:'center',marginTop:16},
   expiry:{color:colours.gold,fontSize:9,fontWeight:'900',textAlign:'center',letterSpacing:1,marginTop:2}, expired:{color:colours.red,fontSize:10,fontWeight:'900',textAlign:'center',marginTop:14},
-  actionGap:{marginTop:15}, entryRow:{flexDirection:'row',gap:8,marginTop:12}, codeInput:{flex:1,minHeight:50,borderWidth:1,borderColor:colours.gold,borderRadius:10,backgroundColor:colours.card2,color:colours.white,fontSize:22,fontWeight:'900',letterSpacing:3,textAlign:'center',paddingHorizontal:10},
-  inlineAdd:{minWidth:110,borderRadius:10,backgroundColor:colours.gold,alignItems:'center',justifyContent:'center',paddingHorizontal:10}, inlineAddText:{color:colours.background,fontSize:9,fontWeight:'900',letterSpacing:.6}, disabled:{opacity:.4},
+  actionGap:{marginTop:15}, codeEntryWrap:{position:'relative',marginTop:15,minHeight:62,justifyContent:'center'}, hiddenInput:{position:'absolute',width:1,height:1,opacity:0,left:'50%',top:'50%'},
+  slotsRow:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:5}, slotGroup:{flexDirection:'row',alignItems:'center',gap:5}, slot:{width:38,height:50,borderWidth:1,borderColor:colours.border,borderRadius:9,backgroundColor:colours.card2,alignItems:'center',justifyContent:'center'}, slotActive:{borderColor:colours.gold}, slotText:{color:colours.white,fontSize:23,fontWeight:'900'}, hyphen:{color:colours.gold,fontSize:25,fontWeight:'900',marginHorizontal:3},
   message:{color:colours.gold,fontSize:10,lineHeight:15,marginVertical:5}, listTitle:{color:colours.gold,fontSize:9,fontWeight:'900',letterSpacing:1,marginTop:8,marginBottom:8}, emptyTitle:{color:colours.white,fontSize:12,fontWeight:'900'},
   friendCard:{minHeight:70,flexDirection:'row',alignItems:'center',marginBottom:8}, flex:{flex:1}, friendName:{color:colours.white,fontSize:14,fontWeight:'900'}, friendSince:{color:colours.muted,fontSize:7,fontWeight:'800',marginTop:4},
   removeButton:{borderWidth:1,borderColor:colours.red,borderRadius:8,minHeight:34,paddingHorizontal:10,alignItems:'center',justifyContent:'center',marginLeft:10}, removeText:{color:colours.red,fontSize:8,fontWeight:'900'}
