@@ -31,6 +31,17 @@ type NewActivityLog = {
   activity: Activity;
   durationMinutes: number;
   amount: number;
+  performedAt?: string;
+};
+
+type NewSimpleActivityLog = {
+  userId: string;
+  name: string;
+  icon?: string | null;
+  trainingType?: string;
+  durationMinutes: number;
+  creditMinutes?: number;
+  performedAt?: string;
 };
 
 export function calculateActivityCredit(activity: Activity, amount: number, minutes: number) {
@@ -43,32 +54,21 @@ export function calculateActivityCredit(activity: Activity, amount: number, minu
 
 export async function getActivities(): Promise<Activity[]> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase
-    .from('activities')
-    .select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system')
-    .order('is_system', { ascending: false })
-    .order('name');
+  const { data, error } = await supabase.from('activities').select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system').order('is_system', { ascending: false }).order('name');
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getActivity(activityId: string): Promise<Activity> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase
-    .from('activities')
-    .select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system')
-    .eq('id', activityId)
-    .single();
+  const { data, error } = await supabase.from('activities').select('id, name, icon, category, training_type, measure_type, unit, default_target, default_minutes, owner_user_id, is_system').eq('id', activityId).single();
   if (error) throw error;
   return data;
 }
 
 export async function getFavouriteActivityIds(userId: string): Promise<string[]> {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase
-    .from('activity_favourites')
-    .select('activity_id')
-    .eq('user_id', userId);
+  const { data, error } = await supabase.from('activity_favourites').select('activity_id').eq('user_id', userId);
   if (error) throw error;
   return (data ?? []).map((row) => row.activity_id);
 }
@@ -87,7 +87,6 @@ export async function setActivityFavourite(userId: string, activityId: string, f
 export async function addActivityLog(input: NewActivityLog) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const credit = calculateActivityCredit(input.activity, input.amount, input.durationMinutes);
-
   const { error } = await supabase.from('activity_logs').insert({
     user_id: input.userId,
     activity_id: input.activity.id,
@@ -98,19 +97,31 @@ export async function addActivityLog(input: NewActivityLog) {
     credit_minutes: credit,
     amount: input.activity.measure_type === 'time' ? input.durationMinutes : input.amount,
     unit: input.activity.measure_type === 'time' ? 'min' : input.activity.unit,
+    ...(input.performedAt ? { performed_at: input.performedAt } : {}),
   });
+  if (error) throw error;
+}
 
+export async function addSimpleActivityLog(input: NewSimpleActivityLog) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('activity_logs').insert({
+    user_id: input.userId,
+    activity_id: null,
+    activity_name: input.name,
+    activity_icon: input.icon ?? '🏋️',
+    training_type: input.trainingType ?? 'Strength',
+    duration_minutes: input.durationMinutes,
+    credit_minutes: input.creditMinutes ?? input.durationMinutes,
+    amount: input.durationMinutes,
+    unit: 'min',
+    ...(input.performedAt ? { performed_at: input.performedAt } : {}),
+  });
   if (error) throw error;
 }
 
 export async function getActivityLogs(): Promise<ActivityLog[]> {
   if (!supabase) throw new Error('Supabase is not configured.');
-
-  const { data, error } = await supabase
-    .from('activity_logs')
-    .select('id, activity_name, activity_icon, training_type, amount, unit, duration_minutes, credit_minutes, performed_at')
-    .order('performed_at', { ascending: false });
-
+  const { data, error } = await supabase.from('activity_logs').select('id, activity_name, activity_icon, training_type, amount, unit, duration_minutes, credit_minutes, performed_at').order('performed_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
