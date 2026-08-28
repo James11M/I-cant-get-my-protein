@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.47 - 2026-08-28
+
+- Added Master Star 1–5 after Level 10 Master, using sustained rolling Active XP thresholds of 60,000, 65,000, 70,000, 75,000 and 80,000 XP.
+- Added a shared XP engine so Home, Progress and leaderboard rank labels use the same level and Master Star definitions.
+- Restored the POC rolling 365-day Active XP rule: XP automatically drops out of Active XP after 365 days while Lifetime XP remains retained separately.
+- Reconstructed daily XP rewards from completed training using the POC fire-score reward table and preserved the rule that Comeback can repair streak/history status without retroactively awarding XP to the repaired day.
+- Kept the Home target wheel below half the target-card width and protected the XP/multiplier reward text from wrapping.
+
 ## 0.1.46 - 2026-08-23
 
 - Added private user-created Teams with persistent six-digit invite codes, owner-approved join requests and team-specific leaderboard filters.
