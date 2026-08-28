@@ -81,8 +81,13 @@ export function calculateXpSummary(logs: ActivityLog[], today = new Date()): XpS
   const transactions: XpTransaction[] = [];
 
   for (const date of transactionDates(logs, today)) {
-    if (!effectiveComplete(logs, date, today)) continue;
-    const fireScore = fireScoreEndingOn(logs, date, today);
+    // Match the POC: comeback may repair streak/history status, but XP is only
+    // awarded on a day whose own training reaches the daily target.
+    if (normalCredit(logsForDate(logs, date)) < DAILY_TARGET) continue;
+
+    // Reconstruct the reward as it would have stood on that date, so later
+    // comeback credit does not rewrite an earlier day's fire-score reward.
+    const fireScore = fireScoreEndingOn(logs, date, date);
     transactions.push({ date: dateKey(date), amount: FIRE_XP[fireScore], fireScore, multiplier: FIRE_MULTIPLIER[fireScore] });
   }
 
