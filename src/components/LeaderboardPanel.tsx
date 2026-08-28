@@ -5,6 +5,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Card } from '@/components/Card';
 import { PrimaryActionButton } from '@/components/PrimaryActionButton';
 import { getFriendLeaderboard, getHouseLeaderboard, getLeaderContext, getMyTeams, getSchoolLeaderboard, getTeamLeaderboard, HouseRow, LeaderContext, LeaderRow, TeamSummary } from '@/features/leaders/leaderboards.service';
+import { getRank } from '@/features/xp/xp';
 import { colours } from '@/theme/colours';
 
 type Group = 'Friends' | 'Teams' | 'Houses' | 'School';
@@ -71,11 +72,14 @@ export function LeaderboardPanel() {
     {message ? <Text style={styles.message}>{message}</Text> : null}
 
     <View style={styles.leaderList}>
-      {group === 'Houses' ? houses.map((row, index) => <Card key={row.house_name} style={styles.leaderCard}><Text style={styles.rank}>{index + 1}</Text><View style={styles.leaderCopy}><Text style={styles.leaderName}>{row.house_name}</Text></View><Text style={styles.leaderXp}>{row.xp.toLocaleString()} XP</Text></Card>) : leaders.map((row, index) => <Card key={row.user_id} style={[styles.leaderCard, row.is_you && styles.youCard]}>
-        <Text style={styles.rank}>{index + 1}</Text>
-        <View style={styles.leaderCopy}><Text style={styles.leaderName}>{row.display_name}{row.is_you ? ' • YOU' : ''}</Text><Text style={styles.level}>LEVEL {row.level}</Text></View>
-        <Text style={styles.leaderXp}>{row.xp.toLocaleString()} XP</Text>
-      </Card>)}
+      {group === 'Houses' ? houses.map((row, index) => <Card key={row.house_name} style={styles.leaderCard}><Text style={styles.rank}>{index + 1}</Text><View style={styles.leaderCopy}><Text style={styles.leaderName}>{row.house_name}</Text></View><Text style={styles.leaderXp}>{row.xp.toLocaleString()} XP</Text></Card>) : leaders.map((row, index) => {
+        const rank = getRank(row.xp);
+        return <Card key={row.user_id} style={[styles.leaderCard, row.is_you && styles.youCard]}>
+          <Text style={styles.rank}>{index + 1}</Text>
+          <View style={styles.leaderCopy}><Text style={styles.leaderName}>{row.display_name}{row.is_you ? ' • YOU' : ''}</Text><Text style={styles.level}>{rank.kind === 'master-star' ? rank.title.toUpperCase() : `LEVEL ${rank.level}`}</Text></View>
+          <Text style={styles.leaderXp}>{row.xp.toLocaleString()} XP</Text>
+        </Card>;
+      })}
     </View>
 
     {group === 'Friends' && !leaders.length ? <Card style={styles.emptyCard}><Text style={styles.emptyTitle}>NO FRIENDS YET</Text><Text style={styles.emptyText}>Add someone you know using a private six-digit friend code.</Text></Card> : null}
